@@ -13,7 +13,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold font-[family-name:var(--font-poppins)] text-white mb-6 text-balance">
-              About <span className="text-accent">GAUR Marketing</span>
+              About <span className="text-accent">Kaushal Enterprises</span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">
               We're a team of passionate digital marketing experts dedicated to helping businesses thrive in the digital
@@ -32,7 +32,7 @@ export default function AboutPage() {
                 Our Story
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Founded in 2018, GAUR Marketing started with a simple mission: to help businesses succeed online through
+                Founded in 2018, Kaushal Enterprises with a simple mission: to help businesses succeed online through
                 innovative digital marketing strategies. What began as a small team of passionate marketers has grown
                 into a full-service agency serving clients worldwide.
               </p>
