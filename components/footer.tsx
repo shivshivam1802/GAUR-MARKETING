@@ -9,7 +9,7 @@ export function Footer() {
           {/* Company Info */}
           <div>
             <h3 className="text-2xl font-bold font-[family-name:var(--font-poppins)] mb-4">
-              SIYA RAM <span className="text-accent">ENTERPRISES</span>
+              Kaushal <span className="text-accent">ENTERPRISES</span>
             </h3>
             <p className="text-white/80 mb-6 leading-relaxed">
               Transform your business with data-driven digital marketing strategies. We help brands grow their online
@@ -85,7 +85,7 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={20} className="text-accent flex-shrink-0" />
-                <span className="text-white/80">hello@gaurmarketing.com</span>
+                <span className="text-white/80">hello@KaushalEnterprises.com</span>
               </li>
             </ul>
           </div>
