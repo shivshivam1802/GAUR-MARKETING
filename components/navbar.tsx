@@ -27,7 +27,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
             <div className="text-2xl font-bold font-[family-name:var(--font-poppins)] text-white">
-              SIYA RAM <span className="text-accent">ENTERPRISES</span>
+              Kaushal <span className="text-accent">ENTERPRISES</span>
             </div>
           </Link>
 
