@@ -16,7 +16,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "Kaushal Enterprises - Grow Your Brand. Expand Your Reach.",
+  title: "INTERNET SERVICE PROVIDER - Grow Your Brand. Expand Your Reach.",
   description:
     "Premium digital marketing agency specializing in social media marketing, SEO, Google Ads, branding, and lead generation. Transform your business with data-driven strategies.",
   keywords:
