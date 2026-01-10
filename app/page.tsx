@@ -157,7 +157,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold font-[family-name:var(--font-poppins)] text-primary mb-4">
-              Why Choose Kaushal Enterprises?
+              Why Choose INTERNET SERVICE PROVIDER?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               We combine creativity, data, and expertise to deliver exceptional results
@@ -216,7 +216,7 @@ export default function HomePage() {
               {
                 name: "Sarah Johnson",
                 company: "Tech Innovations Inc",
-                text: "Kaushal Enterprises transformed our online presence. Our leads increased by 300% in just 3 months!",
+                text: "INTERNET SERVICE PROVIDER transformed our online presence. Our leads increased by 300% in just 3 months!",
               },
               {
                 name: "Michael Chen",
