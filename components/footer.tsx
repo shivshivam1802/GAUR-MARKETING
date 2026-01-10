@@ -92,7 +92,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-white/60">
-          <p>&copy; {new Date().getFullYear()} Kaushal Enterprises. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} INTERNET SERVICE PROVIDER. All rights reserved.</p>
         </div>
       </div>
     </footer>
