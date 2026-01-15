@@ -9,7 +9,7 @@ export function Footer() {
           {/* Company Info */}
           <div>
             <h3 className="text-2xl font-bold font-[family-name:var(--font-poppins)] mb-4">
-              INTERNET SERVICE<span className="text-accent">PROVIDER</span>
+              Suhana <span className="text-accent">Beverages</span>
             </h3>
             <p className="text-white/80 mb-6 leading-relaxed">
               Transform your business with data-driven digital marketing strategies. We help brands grow their online
