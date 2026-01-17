@@ -85,14 +85,14 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={20} className="text-accent flex-shrink-0" />
-                <span className="text-white/80">hello@INTERNETSERVICEPROVIDER.com</span>
+                <span className="text-white/80">helloBHARAT ELECTRIC WORKS GUNA.com</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-white/60">
-          <p>&copy; {new Date().getFullYear()} INTERNET SERVICE PROVIDER. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} BHARAT ELECTRIC WORKS GUNA. All rights reserved.</p>
         </div>
       </div>
     </footer>
