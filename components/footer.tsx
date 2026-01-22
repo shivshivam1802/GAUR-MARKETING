@@ -9,7 +9,7 @@ export function Footer() {
           {/* Company Info */}
           <div>
             <h3 className="text-2xl font-bold font-[family-name:var(--font-poppins)] mb-4">
-              Satguru Electromac <span className="text-accent"></span>
+              SIYA MEDICAL & PROVISION STORE <span className="text-accent"></span>
             </h3>
             <p className="text-white/80 mb-6 leading-relaxed">
               Transform your business with data-driven digital marketing strategies. We help brands grow their online
@@ -85,14 +85,14 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={20} className="text-accent flex-shrink-0" />
-                <span className="text-white/80">helloSatguru Electromac .com</span>
+                <span className="text-white/80">helloSIYA MEDICAL & PROVISION STORE.com</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-white/60">
-          <p>&copy; {new Date().getFullYear()} Satguru Electromac. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} SIYA MEDICAL & PROVISION STORE. All rights reserved.</p>
         </div>
       </div>
     </footer>
