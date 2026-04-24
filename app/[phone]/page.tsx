@@ -1,10 +1,18 @@
 import { redirect } from "next/navigation";
 
-export default function Page({ params }: { params: { phone: string } }) {
-  const phone = params.phone;
+export default function Page({
+  params,
+  searchParams,
+}: {
+  params: { phone: string };
+  searchParams: { text?: string };
+}) {
+  const phone = params.phone.replace(/\D/g, ""); // clean number
+  const text = searchParams.text || "";
 
-  // Optional: clean number (remove spaces, +, etc.)
-  const cleanPhone = phone.replace(/\D/g, "");
+  const url = text
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+    : `https://wa.me/${phone}`;
 
-  redirect(`https://wa.me/${cleanPhone}`);
+  redirect(url);
 }
