@@ -7,11 +7,7 @@ export default function Page({
   params: { phone: string };
   searchParams?: { text?: string };
 }) {
-  if (!params?.phone) {
-    return <div>Invalid number</div>;
-  }
-
-  const phone = params.phone.replace(/\D/g, "");
+  const phone = params.phone; // ✅ use as-is (NO cleaning)
   const text = searchParams?.text;
 
   let url = `https://wa.me/${phone}`;
