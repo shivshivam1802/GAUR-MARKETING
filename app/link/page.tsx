@@ -1,17 +1,16 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export const dynamic = "force-dynamic"; // ✅ IMPORTANT
+import { useEffect } from "react";
 
-export default function Page({
-  searchParams,
-}: {
-  searchParams: { url?: string };
-}) {
-  const target = searchParams?.url;
+export default function Page() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get("url");
 
-  if (target) {
-    redirect(target);
-  }
+    if (url) {
+      window.location.href = url;
+    }
+  }, []);
 
-  redirect("/");
+  return <div>Redirecting...</div>;
 }
