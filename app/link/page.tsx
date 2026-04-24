@@ -1,8 +1,13 @@
 import { redirect } from "next/navigation";
 
-export default function Page(request: any) {
-  const url = new URL(request.url);
-  const target = url.searchParams.get("url");
+export const dynamic = "force-dynamic"; // ✅ IMPORTANT
+
+export default function Page({
+  searchParams,
+}: {
+  searchParams: { url?: string };
+}) {
+  const target = searchParams?.url;
 
   if (target) {
     redirect(target);
