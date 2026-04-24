@@ -5,14 +5,20 @@ export default function Page({
   searchParams,
 }: {
   params: { phone: string };
-  searchParams: { text?: string };
+  searchParams?: { text?: string };
 }) {
-  const phone = params.phone.replace(/\D/g, ""); // clean number
-  const text = searchParams.text || "";
+  if (!params?.phone) {
+    return <div>Invalid number</div>;
+  }
 
-  const url = text
-    ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
-    : `https://wa.me/${phone}`;
+  const phone = params.phone.replace(/\D/g, "");
+  const text = searchParams?.text;
+
+  let url = `https://wa.me/${phone}`;
+
+  if (text) {
+    url += `?text=${encodeURIComponent(text)}`;
+  }
 
   redirect(url);
 }
