@@ -1,14 +1,15 @@
 import { redirect } from "next/navigation";
 
-export default function Page({
+export default async function Page({
   params,
   searchParams,
 }: {
-  params: { phone: string };
-  searchParams?: { text?: string };
+  params: Promise<{ phone: string }>;
+  searchParams?: Promise<{ text?: string }>;
 }) {
-  const phone = params.phone; // ✅ use as-is (NO cleaning)
-  const text = searchParams?.text;
+  const { phone } = await params;
+  const sp = searchParams ? await searchParams : {};
+  const text = sp?.text;
 
   let url = `https://wa.me/${phone}`;
 
