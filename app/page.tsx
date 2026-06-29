@@ -29,6 +29,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { PaymentModal } from "@/components/payment-modal";
 
 interface HistoryItem {
   id: string;
@@ -64,28 +65,49 @@ export default function Home() {
   // Active Generated Link
   const [activeLink, setActiveLink] = useState("");
   const [copiedLink, setCopiedLink] = useState(false);
+  
+  // Premium States
+  const [isPremium, setIsPremium] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customAlias, setCustomAlias] = useState("");
+  const [utmAlias, setUtmAlias] = useState("");
 
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
       document.title = "GAUR LINKS – Dynamic Redirector & Smart Link Generator";
       setOrigin(window.location.origin);
+      
+      const checkPremium = () => {
+        const active = localStorage.getItem("gaur_premium_active") === "true";
+        setIsPremium(active);
+      };
+      checkPremium();
+      const interval = setInterval(checkPremium, 1500);
+
       // Load History
       const savedHistory = localStorage.getItem("gaur_link_history");
       if (savedHistory) {
         try {
-          setHistory(JSON.parse(savedHistory));
+          const parsed = JSON.parse(savedHistory);
+          const isPrem = localStorage.getItem("gaur_premium_active") === "true";
+          setHistory(isPrem ? parsed : parsed.slice(0, 5));
         } catch (e) {
           console.error(e);
         }
       }
+      return () => clearInterval(interval);
     }
   }, []);
 
   // Save history helper
   const saveHistory = (newHistory: HistoryItem[]) => {
-    setHistory(newHistory);
-    localStorage.setItem("gaur_link_history", JSON.stringify(newHistory));
+    let updated = newHistory;
+    if (!isPremium) {
+      updated = newHistory.slice(0, 5);
+    }
+    setHistory(updated);
+    localStorage.setItem("gaur_link_history", JSON.stringify(updated));
   };
 
   // Copy helper
@@ -94,6 +116,33 @@ export default function Home() {
     toast.success("Link copied to clipboard!");
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const exportToCsv = () => {
+    if (!isPremium) {
+      setIsModalOpen(true);
+      toast.error("Premium feature! Upgrade to export history as CSV.");
+      return;
+    }
+    const headers = ["ID", "Type", "Title", "Original URL", "Generated URL", "Created At"];
+    const rows = history.map(item => [
+      item.id,
+      item.type,
+      item.title,
+      item.originalUrl,
+      item.generatedUrl,
+      item.createdAt
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `gaur_links_history_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    toast.success("CSV file downloaded successfully!");
   };
 
   // Generate WhatsApp Link
@@ -152,26 +201,46 @@ export default function Home() {
     }
 
     let generatedUrl = "";
-    if (redirectType === "clean") {
-      generatedUrl = `${origin}/link/${encodeURIComponent(targetUrl)}`;
+    if (customAlias.trim() && isPremium) {
+      const alias = customAlias.trim().toLowerCase();
+      
+      if (!/^[a-zA-Z0-9_-]+$/.test(alias)) {
+        toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.");
+        return;
+      }
+
+      const savedAliases = localStorage.getItem("gaur_link_aliases");
+      const aliases = savedAliases ? JSON.parse(savedAliases) : {};
+      
+      if (aliases[alias] && aliases[alias] !== targetUrl) {
+        toast.error("This custom alias is already in use by another link!");
+        return;
+      }
+
+      aliases[alias] = targetUrl;
+      localStorage.setItem("gaur_link_aliases", JSON.stringify(aliases));
+      generatedUrl = `${origin}/r/${alias}`;
     } else {
-      // Base64 encoding
-      const encoded = btoa(unescape(encodeURIComponent(targetUrl)));
-      generatedUrl = `${origin}/r/${encoded}`;
+      if (redirectType === "clean") {
+        generatedUrl = `${origin}/link/${encodeURIComponent(targetUrl)}`;
+      } else {
+        const encoded = btoa(unescape(encodeURIComponent(targetUrl)));
+        generatedUrl = `${origin}/r/${encoded}`;
+      }
     }
 
     setActiveLink(generatedUrl);
 
-    // Add to history
     const newItem: HistoryItem = {
       id: Date.now().toString(),
       type: "redirect",
-      title: `Redirect to: ${new URL(targetUrl).hostname}`,
+      title: customAlias.trim() && isPremium ? `Custom Redirect: /r/${customAlias.trim()}` : `Redirect to: ${new URL(targetUrl).hostname}`,
       originalUrl: targetUrl,
       generatedUrl: generatedUrl,
       createdAt: new Date().toLocaleString(),
     };
     saveHistory([newItem, ...history]);
+    setCustomAlias("");
     toast.success("Redirect Link Generated!");
   };
 
@@ -197,23 +266,44 @@ export default function Home() {
       if (utmContent) urlObj.searchParams.set("utm_content", utmContent);
       
       const finalUrl = urlObj.toString();
-      
-      // Let's create an obfuscated link redirecting to this UTM link
-      const encoded = btoa(unescape(encodeURIComponent(finalUrl)));
-      const generatedUrl = `${origin}/r/${encoded}`;
+      let generatedUrl = "";
+
+      if (utmAlias.trim() && isPremium) {
+        const alias = utmAlias.trim().toLowerCase();
+        
+        if (!/^[a-zA-Z0-9_-]+$/.test(alias)) {
+          toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.");
+          return;
+        }
+
+        const savedAliases = localStorage.getItem("gaur_link_aliases");
+        const aliases = savedAliases ? JSON.parse(savedAliases) : {};
+
+        if (aliases[alias] && aliases[alias] !== finalUrl) {
+          toast.error("This custom alias is already in use by another link!");
+          return;
+        }
+
+        aliases[alias] = finalUrl;
+        localStorage.setItem("gaur_link_aliases", JSON.stringify(aliases));
+        generatedUrl = `${origin}/r/${alias}`;
+      } else {
+        const encoded = btoa(unescape(encodeURIComponent(finalUrl)));
+        generatedUrl = `${origin}/r/${encoded}`;
+      }
       
       setActiveLink(generatedUrl);
 
-      // Add to history
       const newItem: HistoryItem = {
         id: Date.now().toString(),
         type: "utm",
-        title: `UTM Campaign for: ${urlObj.hostname}`,
+        title: utmAlias.trim() && isPremium ? `Custom UTM: /r/${utmAlias.trim()}` : `UTM Campaign for: ${urlObj.hostname}`,
         originalUrl: finalUrl,
         generatedUrl: generatedUrl,
         createdAt: new Date().toLocaleString(),
       };
       saveHistory([newItem, ...history]);
+      setUtmAlias("");
       toast.success("UTM Campaign Link Generated!");
     } catch {
       toast.error("Please enter a valid URL");
@@ -386,6 +476,21 @@ export default function Home() {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="custom-alias" className="text-sm font-semibold text-neutral-300 flex items-center justify-between">
+                          <span>Custom Redirection Alias (Optional)</span>
+                          {!isPremium && <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold">PREMIUM</span>}
+                        </Label>
+                        <Input 
+                          id="custom-alias"
+                          placeholder={isPremium ? "e.g. promo-slug" : "Upgrade to Premium to unlock Custom Alias"}
+                          value={customAlias}
+                          onChange={(e) => setCustomAlias(e.target.value)}
+                          disabled={!isPremium}
+                          className={`bg-neutral-950/80 border-neutral-800 text-white placeholder-neutral-500 py-6 pl-4 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg font-mono ${!isPremium && "opacity-50 cursor-not-allowed bg-neutral-900"}`}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
                         <Label className="text-sm font-semibold text-neutral-300 block mb-2">Obfuscation Mode</Label>
                         <div className="grid grid-cols-2 gap-4">
                           <div 
@@ -430,6 +535,21 @@ export default function Home() {
                           value={utmTarget}
                           onChange={(e) => setUtmTarget(e.target.value)}
                           className="bg-neutral-950/80 border-neutral-800 text-white placeholder-neutral-500 py-6 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="utm-alias" className="text-sm font-semibold text-neutral-300 flex items-center justify-between">
+                          <span>Custom UTM Alias (Optional)</span>
+                          {!isPremium && <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold">PREMIUM</span>}
+                        </Label>
+                        <Input 
+                          id="utm-alias"
+                          placeholder={isPremium ? "e.g. news-slug" : "Upgrade to Premium to unlock Custom Alias"}
+                          value={utmAlias}
+                          onChange={(e) => setUtmAlias(e.target.value)}
+                          disabled={!isPremium}
+                          className={`bg-neutral-950/80 border-neutral-800 text-white placeholder-neutral-500 py-6 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg font-mono ${!isPremium && "opacity-50 cursor-not-allowed bg-neutral-900"}`}
                         />
                       </div>
 
@@ -578,16 +698,42 @@ export default function Home() {
             <h2 className="text-2xl font-bold flex items-center gap-2 text-neutral-200">
               <History className="w-6 h-6 text-indigo-500" /> Recently Generated Links
             </h2>
-            {history.length > 0 && (
-              <Button 
-                onClick={clearHistory} 
-                variant="ghost" 
-                className="text-neutral-500 hover:text-red-400 flex items-center gap-1.5 p-0 bg-transparent hover:bg-transparent"
-              >
-                <Trash2 className="w-4 h-4" /> Clear All History
-              </Button>
-            )}
+            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+              {history.length > 0 && (
+                <button
+                  onClick={exportToCsv}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-neutral-800 hover:border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white text-xs font-semibold cursor-pointer transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Export History CSV
+                  {!isPremium && <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400/40" />}
+                </button>
+              )}
+              {history.length > 0 && (
+                <Button 
+                  onClick={clearHistory} 
+                  variant="ghost" 
+                  className="text-neutral-500 hover:text-red-400 flex items-center gap-1.5 p-0 bg-transparent hover:bg-transparent cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" /> Clear All History
+                </Button>
+              )}
+            </div>
           </div>
+
+          {!isPremium && history.length >= 5 && (
+            <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/10 text-center space-y-2">
+              <p className="text-sm text-neutral-400">
+                You have reached the **5-link history cap** for the free tier.
+              </p>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-bold underline cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Upgrade to Premium to unlock Custom Aliases, CSV export, & unlimited logs!
+              </button>
+            </div>
+          )}
 
           <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl shadow-2xl">
             <CardContent className="p-6 space-y-4">
@@ -688,6 +834,7 @@ export default function Home() {
         </div>
       </div>
       <Footer />
+      <PaymentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
