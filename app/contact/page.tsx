@@ -61,7 +61,7 @@ export default function ContactPage() {
               Get In <span className="text-accent">Touch</span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">
-              Ready to grow your business? Let's start a conversation about your marketing goals.
+              Have questions about GAUR LINKS? Let's start a conversation about our smart redirect and dynamic link platform.
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function ContactPage() {
                         name="message"
                         value={formData.message}
                         onChange={handleChange}
-                        placeholder="Tell us about your project and marketing goals..."
+                        placeholder="Tell us about your feedback or question..."
                         required
                         rows={6}
                         className="resize-none"
@@ -186,7 +186,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-primary mb-1">Office Address</h3>
-                        <p className="text-muted-foreground">03-AL-03A Alambagh Metro Station</p>
+                        <p className="text-muted-foreground">GAUR LINKS HQ, Alambagh, Lucknow</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -199,9 +199,9 @@ export default function ContactPage() {
                       <div>
                         <h3 className="font-semibold text-primary mb-1">Phone</h3>
                         <p className="text-muted-foreground">
-                          +1 (555) 123-4567
+                          +91 99999 99999
                           <br />
-                          Mon-Fri: 9:00 AM - 6:00 PM EST
+                          Mon-Fri: 9:00 AM - 6:00 PM IST
                         </p>
                       </div>
                     </CardContent>
@@ -215,9 +215,9 @@ export default function ContactPage() {
                       <div>
                         <h3 className="font-semibold text-primary mb-1">Email</h3>
                         <p className="text-muted-foreground">
-                          hello@gaurmarketing.com
+                          hello@gaurlinks.com
                           <br />
-                          support@gaurmarketing.com
+                          support@gaurlinks.com
                         </p>
                       </div>
                     </CardContent>

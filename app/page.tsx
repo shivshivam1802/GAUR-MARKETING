@@ -68,6 +68,7 @@ export default function Home() {
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
+      document.title = "GAUR LINKS – Dynamic Redirector & Smart Link Generator";
       setOrigin(window.location.origin);
       // Load History
       const savedHistory = localStorage.getItem("gaur_link_history");

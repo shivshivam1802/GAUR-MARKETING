@@ -3,146 +3,57 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import {
-  TrendingUp,
-  Target,
-  Megaphone,
-  Search,
-  Palette,
-  Users,
-  CheckCircle2,
-  BarChart3,
-  Mail,
-  Globe,
-  Video,
-  ShoppingCart,
-} from "lucide-react"
+import { MessageSquare, Link2, Globe, QrCode, CheckCircle2 } from "lucide-react"
 
 export default function ServicesPage() {
   const services = [
     {
-      icon: <TrendingUp className="w-12 h-12 text-accent" />,
-      title: "Digital Marketing",
+      icon: <MessageSquare className="w-12 h-12 text-accent" />,
+      title: "WhatsApp Direct Chat Links",
       description:
-        "Comprehensive digital marketing strategies that combine multiple channels to maximize your online presence and drive measurable business growth.",
+        "Generate direct click-to-chat links for any phone number with pre-filled custom message templates so customers can reach you instantly.",
       features: [
-        "Marketing Strategy Development",
-        "Multi-Channel Campaigns",
-        "Performance Analytics",
-        "ROI Optimization",
+        "Pre-filled text messages",
+        "Clean mobile-ready format",
+        "Zero registration required",
+        "Instant WhatsApp launch",
       ],
     },
     {
-      icon: <Megaphone className="w-12 h-12 text-accent" />,
-      title: "Social Media Marketing",
+      icon: <Link2 className="w-12 h-12 text-accent" />,
+      title: "Smart Redirect Links",
       description:
-        "Build and engage your audience across all major social platforms with compelling content and strategic campaigns that convert followers into customers.",
+        "Create lightweight, stateless redirection links that forward visitors to any URL securely, using either clean readable paths or base64 obfuscation.",
       features: [
-        "Content Creation & Planning",
-        "Community Management",
-        "Social Media Advertising",
-        "Influencer Partnerships",
-      ],
-    },
-    {
-      icon: <Search className="w-12 h-12 text-accent" />,
-      title: "SEO & Website Optimization",
-      description:
-        "Improve your search engine rankings and drive organic traffic with technical SEO, on-page optimization, and strategic link building.",
-      features: [
-        "Keyword Research & Strategy",
-        "On-Page SEO Optimization",
-        "Technical SEO Audits",
-        "Link Building Campaigns",
-      ],
-    },
-    {
-      icon: <Target className="w-12 h-12 text-accent" />,
-      title: "Google Ads / Paid Campaigns",
-      description:
-        "Maximize your advertising ROI with expertly managed PPC campaigns across Google Ads, Facebook Ads, and other major platforms.",
-      features: [
-        "Campaign Strategy & Setup",
-        "Ad Copy & Creative Design",
-        "Bid Management & Optimization",
-        "Conversion Tracking",
-      ],
-    },
-    {
-      icon: <Palette className="w-12 h-12 text-accent" />,
-      title: "Branding & Graphic Design",
-      description:
-        "Create a memorable brand identity with stunning visual design that resonates with your target audience and differentiates you from competitors.",
-      features: ["Logo & Brand Identity Design", "Marketing Collateral", "Social Media Graphics", "Brand Guidelines"],
-    },
-    {
-      icon: <Users className="w-12 h-12 text-accent" />,
-      title: "Lead Generation",
-      description:
-        "Fill your sales pipeline with high-quality leads using proven strategies including landing pages, lead magnets, and conversion optimization.",
-      features: [
-        "Landing Page Design",
-        "Lead Magnet Creation",
-        "Conversion Rate Optimization",
-        "Email Marketing Automation",
-      ],
-    },
-    {
-      icon: <Mail className="w-12 h-12 text-accent" />,
-      title: "Email Marketing",
-      description:
-        "Nurture relationships and drive sales with strategic email campaigns that engage your audience and deliver exceptional ROI.",
-      features: [
-        "Email Campaign Strategy",
-        "Newsletter Design & Content",
-        "Marketing Automation",
-        "A/B Testing & Optimization",
-      ],
-    },
-    {
-      icon: <Video className="w-12 h-12 text-accent" />,
-      title: "Video Marketing",
-      description:
-        "Engage your audience with compelling video content that tells your brand story and drives action across all digital channels.",
-      features: ["Video Strategy & Planning", "Script Writing", "Video Production", "Video SEO & Distribution"],
-    },
-    {
-      icon: <ShoppingCart className="w-12 h-12 text-accent" />,
-      title: "E-Commerce Marketing",
-      description:
-        "Drive online sales with specialized e-commerce marketing strategies including product optimization, shopping ads, and conversion tactics.",
-      features: [
-        "Product Feed Optimization",
-        "Shopping Campaign Management",
-        "Remarketing Strategies",
-        "Cart Abandonment Recovery",
-      ],
-    },
-    {
-      icon: <BarChart3 className="w-12 h-12 text-accent" />,
-      title: "Analytics & Reporting",
-      description:
-        "Make data-driven decisions with comprehensive analytics, detailed reporting, and actionable insights into your marketing performance.",
-      features: [
-        "Google Analytics Setup",
-        "Custom Dashboard Creation",
-        "Performance Reporting",
-        "Data Analysis & Insights",
+        "Base64 secure obfuscation",
+        "Clean URL forwarding",
+        "100% serverless redirections",
+        "Privacy-respecting hops",
       ],
     },
     {
       icon: <Globe className="w-12 h-12 text-accent" />,
-      title: "Website Development",
+      title: "UTM Campaign Builder",
       description:
-        "Build high-performing, mobile-responsive websites that convert visitors into customers and support your digital marketing goals.",
-      features: ["Responsive Web Design", "CMS Development", "E-Commerce Solutions", "Website Maintenance"],
+        "Standardize and build your marketing campaign URLs with Google Analytics UTM parameters to easily track your traffic sources and mediums.",
+      features: [
+        "Set source, medium, campaign",
+        "Obfuscated target redirection",
+        "Pre-validated URL formats",
+        "Marketing strategy integration",
+      ],
     },
     {
-      icon: <CheckCircle2 className="w-12 h-12 text-accent" />,
-      title: "Marketing Consulting",
+      icon: <QrCode className="w-12 h-12 text-accent" />,
+      title: "Instant QR Code Generator",
       description:
-        "Get expert guidance on your marketing strategy with personalized consulting sessions and actionable recommendations.",
-      features: ["Marketing Audits", "Strategy Development", "Competitive Analysis", "Growth Planning"],
+        "Get instant, downloadable QR code images for any of your generated links to place on brochures, flyers, slides, and packaging.",
+      features: [
+        "Dynamic high-resolution images",
+        "One-click direct downloads",
+        "Universal scanner compatibility",
+        "Offline-to-online connection",
+      ],
     },
   ]
 
@@ -155,10 +66,10 @@ export default function ServicesPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold font-[family-name:var(--font-poppins)] text-white mb-6 text-balance">
-              Our <span className="text-accent">Services</span>
+              Our <span className="text-accent">Utilities</span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">
-              Comprehensive digital marketing solutions designed to help your business thrive online
+              Comprehensive smart linking utilities designed to help your campaigns run efficiently
             </p>
           </div>
         </div>
@@ -167,7 +78,7 @@ export default function ServicesPage() {
       {/* Services Grid */}
       <section className="py-24 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {services.map((service, index) => (
               <Card
                 key={index}
@@ -200,13 +111,13 @@ export default function ServicesPage() {
       <section className="py-24 bg-primary text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-5xl font-bold font-[family-name:var(--font-poppins)] mb-6 text-balance">
-            Ready to Get Started?
+            Ready to Build a Link?
           </h2>
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Let's discuss which services are right for your business goals
+            Start creating your custom WhatsApp links, redirects, and campaign URLs right now.
           </p>
           <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-white text-lg px-8 py-6">
-            <Link href="/contact">Schedule Free Consultation</Link>
+            <Link href="/">Launch Link Workspace</Link>
           </Button>
         </div>
       </section>

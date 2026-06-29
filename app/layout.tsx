@@ -16,11 +16,11 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "Satguru Electromac - Grow Your Brand. Expand Your Reach.",
+  title: "GAUR LINKS – Dynamic Redirector, Smart Redirect & UTM Builder",
   description:
-    "Premium digital marketing agency specializing in social media marketing, SEO, Google Ads, branding, and lead generation. Transform your business with data-driven strategies.",
+    "GAUR LINKS is a powerful smart link generator that lets users create WhatsApp direct chat links, dynamic redirects, UTM campaign URLs, QR codes, and shareable smart links instantly.",
   keywords:
-    "digital marketing, social media marketing, SEO, Google Ads, branding, lead generation, performance marketing",
+    "GAUR LINKS, Dynamic Redirector, Smart Redirect, WhatsApp Link Generator, UTM Builder, QR Code Generator, Smart Links, URL Shortener, Marketing Tools",
   icons: {
     icon: [
       {
@@ -38,7 +38,36 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
-    generator: 'v0.app'
+  openGraph: {
+    title: "GAUR LINKS – Dynamic Redirector & Smart Link Generator",
+    description: "Generate WhatsApp links, smart redirects, UTM URLs, and QR codes instantly.",
+    siteName: "GAUR LINKS",
+    url: "https://gaurmarketing.com",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GAUR LINKS – Dynamic Redirector",
+    description: "Build WhatsApp links, Smart Redirects, and UTM Campaign URLs in seconds.",
+  },
+  applicationName: "GAUR LINKS",
+  generator: 'v0.app'
+}
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "GAUR LINKS",
+  "alternateName": "GAUR LINKS Dynamic Redirector",
+  "url": "https://gaurmarketing.com",
+  "description": "GAUR LINKS is a powerful smart link generator that lets users create WhatsApp direct chat links, dynamic redirects, UTM campaign URLs, QR codes, and shareable smart links instantly.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0.00",
+    "priceCurrency": "USD"
+  }
 }
 
 export default function RootLayout({
@@ -49,6 +78,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
         <Analytics />
       </body>

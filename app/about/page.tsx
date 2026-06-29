@@ -13,11 +13,10 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold font-[family-name:var(--font-poppins)] text-white mb-6 text-balance">
-              About <span className="text-accent">Kaushal Enterprises</span>
+              About <span className="text-accent">GAUR LINKS</span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">
-              We're a team of passionate digital marketing experts dedicated to helping businesses thrive in the digital
-              age.
+              We build powerful, stateless developer and marketer link utilities to help you guide users to their destination instantly and securely.
             </p>
           </div>
         </div>
@@ -32,26 +31,21 @@ export default function AboutPage() {
                 Our Story
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Founded in 2018, Kaushal Enterprises with a simple mission: to help businesses succeed online through
-                innovative digital marketing strategies. What began as a small team of passionate marketers has grown
-                into a full-service agency serving clients worldwide.
+                GAUR LINKS was created to solve a common digital marketing problem: standard URL shorteners are often heavy, require accounts, track user data, and lack unified utilities for WhatsApp linking or campaign tags.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                We believe in the power of data-driven marketing combined with creative storytelling. Our approach
-                focuses on understanding your unique business goals and crafting customized strategies that deliver
-                measurable results.
+                We designed a purely client-side, stateless workspace that lets you create direct WhatsApp links, dynamic secure redirects, and UTM builder flows in seconds, with instant QR code generation built right in.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Today, we're proud to have helped over 200 businesses grow their online presence, generate quality
-                leads, and achieve their marketing objectives.
+                Today, GAUR LINKS serves as a crucial day-to-day tool for digital marketers, growth hackers, and content creators looking for a fast, reliable utility hub.
               </p>
             </div>
             <div className="relative">
               <div className="aspect-square rounded-2xl bg-gradient-to-br from-accent/20 to-primary/20 flex items-center justify-center">
                 <div className="text-center">
                   <TrendingUp className="w-32 h-32 text-accent mx-auto mb-4" />
-                  <div className="text-4xl font-bold font-[family-name:var(--font-poppins)] text-primary">6+</div>
-                  <div className="text-muted-foreground">Years of Excellence</div>
+                  <div className="text-4xl font-bold font-[family-name:var(--font-poppins)] text-primary">100%</div>
+                  <div className="text-muted-foreground">Stateless & Secure</div>
                 </div>
               </div>
             </div>
@@ -72,8 +66,7 @@ export default function AboutPage() {
                   Our Mission
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To empower businesses with innovative digital marketing solutions that drive growth, build brand
-                  awareness, and create lasting customer relationships.
+                  To simplify link redirection and tracking preparation by providing lightning-fast, zero-overhead client utilities.
                 </p>
               </CardContent>
             </Card>
@@ -87,8 +80,7 @@ export default function AboutPage() {
                   Our Vision
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To become the most trusted digital marketing partner for businesses worldwide, known for delivering
-                  exceptional results and outstanding service.
+                  To become the go-to smart link optimization suite, continuously launching essential marketer helper modules.
                 </p>
               </CardContent>
             </Card>
@@ -102,8 +94,7 @@ export default function AboutPage() {
                   Our Values
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Integrity, innovation, collaboration, and results. We treat every client's business as our own and
-                  strive for excellence in everything we do.
+                  Simplicity, data privacy, developer accessibility, and speed. We never store your link targets on a backend database.
                 </p>
               </CardContent>
             </Card>
@@ -123,10 +114,10 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {[
-              { icon: <Users />, number: "200+", label: "Happy Clients" },
-              { icon: <TrendingUp />, number: "500+", label: "Successful Campaigns" },
-              { icon: <Award />, number: "98%", label: "Client Satisfaction" },
-              { icon: <Target />, number: "3M+", label: "Leads Generated" },
+              { icon: <Users />, number: "1M+", label: "Monthly Links Generated" },
+              { icon: <TrendingUp />, number: "5M+", label: "Successful Redirects" },
+              { icon: <Award />, number: "99.99%", label: "Platform Uptime" },
+              { icon: <Target />, number: "3M+", label: "QR Codes Generated" },
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
@@ -154,10 +145,10 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {[
-              { name: "John Gaur", role: "Founder & CEO", specialty: "Digital Strategy" },
-              { name: "Sarah Miller", role: "Head of SEO", specialty: "Search Optimization" },
-              { name: "David Park", role: "Creative Director", specialty: "Brand Design" },
-              { name: "Lisa Wong", role: "Social Media Lead", specialty: "Social Strategy" },
+              { name: "John Gaur", role: "Founder & Lead Architect", specialty: "Product Strategy" },
+              { name: "Sarah Miller", role: "Lead Engineer", specialty: "Full Stack Development" },
+              { name: "David Park", role: "UI/UX Designer", specialty: "Visual Interfaces" },
+              { name: "Lisa Wong", role: "Growth Marketer", specialty: "User Acquisition" },
             ].map((member, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
