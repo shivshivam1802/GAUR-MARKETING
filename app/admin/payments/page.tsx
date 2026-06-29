@@ -1,348 +1,329 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { 
-  ArrowLeft, 
-  Check, 
-  Trash2, 
-  ShieldCheck, 
-  ShieldAlert, 
-  Copy, 
+import React, { useState, useEffect } from "react"
+import Link from "next/link"
+import {
+  ArrowLeft,
+  Check,
+  ShieldCheck,
+  ShieldAlert,
+  Copy,
   ExternalLink,
-  Sparkles,
   RefreshCw,
   Search,
-  DollarSign
-} from "lucide-react";
-import { toast } from "sonner";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
+  Lock,
+  User as UserIcon,
+  Mail,
+  Loader2,
+  XCircle,
+} from "lucide-react"
+import { toast } from "sonner"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Toaster } from "@/components/ui/sonner"
 
 interface PaymentItem {
-  id: string;
-  txHash: string;
-  senderWallet?: string;
-  email: string;
-  status: "pending" | "approved" | "rejected";
-  timestamp: string;
-  price: string;
-  network: string;
+  id: string
+  fullName: string
+  email: string
+  walletAddress?: string
+  transactionHash: string
+  paymentStatus: "pending" | "verified" | "rejected"
+  createdAt: string
 }
 
 export default function AdminPaymentsPage() {
-  const [payments, setPayments] = useState<PaymentItem[]>([]);
-  const [isPremiumActive, setIsPremiumActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
+  const [payments, setPayments] = useState<PaymentItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "verified" | "rejected">("all")
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
 
   useEffect(() => {
-    setIsMounted(true);
-    loadData();
-  }, []);
+    fetchPayments()
+  }, [])
 
-  const loadData = () => {
-    if (typeof window !== "undefined") {
-      // Load Payments
-      const saved = localStorage.getItem("gaur_premium_payments");
-      if (saved) {
-        try {
-          setPayments(JSON.parse(saved));
-        } catch (e) {
-          console.error(e);
-        }
+  const fetchPayments = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/payments")
+      if (res.ok) {
+        const data = await res.json()
+        setPayments(data.payments || [])
+      } else {
+        toast.error("Failed to load payments database")
       }
-      
-      // Load Active Premium state
-      const active = localStorage.getItem("gaur_premium_active") === "true";
-      setIsPremiumActive(active);
+    } catch (e) {
+      console.error(e)
+      toast.error("Network error loading payments")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
-  const handleToggleMasterPremium = () => {
-    const nextState = !isPremiumActive;
-    localStorage.setItem("gaur_premium_active", String(nextState));
-    setIsPremiumActive(nextState);
-    toast.success(
-      nextState 
-        ? "Master Premium Enabled! Workspace features unlocked." 
-        : "Master Premium Disabled! Capping history logs and aliases."
-    );
-  };
-
-  const handleApprovePayment = (id: string, email: string) => {
-    const updated = payments.map((p) => {
-      if (p.id === id) {
-        return { ...p, status: "approved" as const };
+  const handleAction = async (userId: string, action: "approve" | "reject") => {
+    setActionLoadingId(userId)
+    try {
+      const res = await fetch("/api/admin/payments/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(data.message)
+        fetchPayments()
+      } else {
+        toast.error(data.error || "Action failed")
       }
-      return p;
-    });
-
-    setPayments(updated);
-    localStorage.setItem("gaur_premium_payments", JSON.stringify(updated));
-    
-    // Activate premium for the browser session
-    localStorage.setItem("gaur_premium_active", "true");
-    setIsPremiumActive(true);
-
-    toast.success(`Payment verified and approved! Premium activated for ${email}`);
-  };
-
-  const handleDeletePayment = (id: string) => {
-    if (confirm("Are you sure you want to delete this payment record?")) {
-      const updated = payments.filter((p) => p.id !== id);
-      setPayments(updated);
-      localStorage.setItem("gaur_premium_payments", JSON.stringify(updated));
-      toast.success("Payment record deleted.");
+    } catch (e) {
+      console.error(e)
+      toast.error("Network error performing action")
+    } finally {
+      setActionLoadingId(null)
     }
-  };
+  }
 
   const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard!`);
-  };
-
-  const handleResetStorage = () => {
-    if (confirm("DANGER: This will delete ALL submitted payment records and disable Premium status. Proceed?")) {
-      localStorage.removeItem("gaur_premium_payments");
-      localStorage.setItem("gaur_premium_active", "false");
-      setPayments([]);
-      setIsPremiumActive(false);
-      toast.success("Payments database and Premium settings reset.");
-    }
-  };
-
-  // Filter lists
-  const filteredPayments = payments.filter((p) => 
-    p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.txHash.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.senderWallet && p.senderWallet.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
+    navigator.clipboard.writeText(text)
+    toast.success(`${label} copied to clipboard`)
   }
+
+  // Filters
+  const filteredPayments = payments.filter((p) => {
+    const matchesSearch =
+      p.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.transactionHash.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesStatus = filterStatus === "all" || p.paymentStatus === filterStatus
+
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+      <Toaster position="top-right" theme="dark" />
       <Navbar />
 
-      <div className="container mx-auto px-4 pt-32 pb-16 max-w-6xl">
-        {/* Header Navigation */}
-        <div className="mb-8">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Link Workspace
-          </Link>
-        </div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Admin Dashboard Title & Master Toggle */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 border-b border-neutral-900 pb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-red-400 via-pink-400 to-indigo-400 flex items-center gap-2">
-              <ShieldCheck className="w-8 h-8 text-red-500" /> Admin Payment Review
+      <div className="container mx-auto px-4 pt-32 pb-16 relative z-10 max-w-6xl">
+        <div className="flex items-center justify-between mb-8">
+          <div className="space-y-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white mb-2 cursor-pointer transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Link Workspace
+            </Link>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-400">
+              Admin Payments Console
             </h1>
-            <p className="text-neutral-400 text-sm mt-1">
-              Verify TRC20 USDT payments, activate premium licenses, and review logs securely.
+            <p className="text-neutral-400 text-sm">
+              Review, approve, or reject user transaction hashes for premium tier validation.
             </p>
           </div>
-
-          {/* Master Control Card */}
-          <div className="flex flex-wrap items-center gap-4 bg-neutral-900/60 border border-neutral-800 p-4 rounded-xl backdrop-blur-xl">
-            <div className="flex items-center gap-2">
-              <Sparkles className={`w-4 h-4 ${isPremiumActive ? "text-amber-400 animate-spin" : "text-neutral-500"}`} />
-              <span className="text-xs font-semibold text-neutral-300">Master Premium Mode:</span>
-              <span className={`text-xs px-2 py-0.5 rounded font-bold ${
-                isPremiumActive 
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" 
-                  : "bg-neutral-850 text-neutral-500 border border-neutral-850"
-              }`}>
-                {isPremiumActive ? "ACTIVE" : "INACTIVE"}
-              </span>
-            </div>
-            <button 
-              onClick={handleToggleMasterPremium}
-              className={`text-xs font-bold px-4 py-2 rounded-lg cursor-pointer transition-all ${
-                isPremiumActive 
-                  ? "bg-amber-600 hover:bg-amber-500 text-white" 
-                  : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/10"
-              }`}
-            >
-              Toggle Premium
-            </button>
-            <button 
-              onClick={handleResetStorage}
-              className="text-xs font-bold px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 cursor-pointer"
-            >
-              Reset Database
-            </button>
-          </div>
+          <Button
+            onClick={fetchPayments}
+            disabled={loading}
+            variant="outline"
+            className="border-neutral-800 text-neutral-300 hover:bg-neutral-800"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          </Button>
         </div>
 
-        {/* Database List Workspace */}
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-neutral-200">
-              <DollarSign className="w-5 h-5 text-indigo-400" /> Submitted Tx Receipts ({payments.length})
-            </h2>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative w-full sm:w-64">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Controls Card */}
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl">
+            <CardContent className="p-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+              {/* Search */}
+              <div className="relative w-full md:max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                <input 
-                  placeholder="Search emails, tx hashes..."
+                <Input
+                  placeholder="Search user, email, or TXID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 text-white pl-9 py-2 rounded-lg text-xs focus:ring-indigo-500 focus:outline-none placeholder-neutral-600 font-sans"
+                  className="bg-neutral-950 border-neutral-800 text-white pl-10 rounded-lg placeholder-neutral-600"
                 />
               </div>
-              <button 
-                onClick={loadData}
-                className="p-2 border border-neutral-800 hover:border-neutral-700 bg-neutral-900 rounded-lg text-neutral-400 hover:text-white transition-colors"
-                title="Refresh Records List"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
 
-          {/* Glassmorphic Table Container */}
-          <div className="overflow-x-auto rounded-xl border border-neutral-850 bg-neutral-900/40 backdrop-blur-xl shadow-xl">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-950/40 text-neutral-400 text-xs font-bold tracking-wider uppercase">
-                  <th className="p-4">Submission Date</th>
-                  <th className="p-4">User Details</th>
-                  <th className="p-4">TRON Tx Hash (TXID)</th>
-                  <th className="p-4">Payment Info</th>
-                  <th className="p-4">Verification Status</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-neutral-850">
-                {filteredPayments.length > 0 ? (
-                  filteredPayments.map((item) => (
-                    <tr key={item.id} className="hover:bg-neutral-900/20 transition-colors group">
-                      {/* Submission Date */}
-                      <td className="p-4 whitespace-nowrap text-xs text-neutral-400 font-mono">
-                        {item.timestamp}
-                      </td>
+              {/* Status Filter */}
+              <div className="flex gap-2 w-full md:w-auto">
+                {(["all", "pending", "verified", "rejected"] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status)}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all border cursor-pointer ${
+                      filterStatus === status
+                        ? "bg-indigo-600 border-indigo-500 text-white"
+                        : "bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    {status === "verified" ? "Approved" : status}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-                      {/* User Details */}
-                      <td className="p-4">
-                        <div className="space-y-1">
-                          <div className="font-bold text-neutral-200">{item.email}</div>
-                          {item.senderWallet ? (
-                            <div className="flex items-center gap-1 text-[11px] text-neutral-500 font-mono">
-                              <span>Sender: {item.senderWallet.slice(0, 8)}...{item.senderWallet.slice(-8)}</span>
-                              <button 
-                                onClick={() => handleCopy(item.senderWallet || "", "Sender Wallet")}
-                                className="opacity-0 group-hover:opacity-100 hover:text-neutral-300 p-0.5 bg-transparent transition-opacity"
-                              >
-                                <Copy className="w-3 h-3" />
-                              </button>
+          {/* List Table Card */}
+          <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <CardHeader className="border-b border-neutral-800 bg-neutral-900/40 p-4">
+              <CardTitle className="text-lg font-bold flex items-center gap-2 text-indigo-300">
+                <Lock className="w-4 h-4 text-indigo-500" /> Payment Receipts list
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-500">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                  <p className="text-sm">Loading users from backend database...</p>
+                </div>
+              ) : filteredPayments.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-800 bg-neutral-950/40 text-neutral-400 text-xs font-semibold uppercase">
+                        <th className="py-4 px-6">User Profile</th>
+                        <th className="py-4 px-6">Transaction ID (TXID)</th>
+                        <th className="py-4 px-6">Status</th>
+                        <th className="py-4 px-6 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800/60">
+                      {filteredPayments.map((item) => (
+                        <tr key={item.id} className="hover:bg-neutral-900/20 group">
+                          {/* User Profile */}
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-neutral-950 border border-neutral-800 flex items-center justify-center text-indigo-400 font-bold text-xs uppercase">
+                                {item.fullName.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="font-bold text-neutral-200 flex items-center gap-1">
+                                  {item.fullName}
+                                </div>
+                                <div className="text-xs text-neutral-500 flex items-center gap-1">
+                                  <Mail className="w-3 h-3" /> {item.email}
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-[10px] text-neutral-600">No sender address provided</span>
-                          )}
-                        </div>
-                      </td>
+                          </td>
 
-                      {/* TRON Tx Hash */}
-                      <td className="p-4 max-w-xs truncate font-mono text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-indigo-400 select-all truncate">{item.txHash}</span>
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={() => handleCopy(item.txHash, "Tx Hash")}
-                              className="text-neutral-500 hover:text-white p-1"
-                              title="Copy Hash"
-                            >
-                              <Copy className="w-3 h-3" />
-                            </button>
-                            <button 
-                              onClick={() => window.open(`https://tronscan.org/#/transaction/${item.txHash}`, "_blank")}
-                              className="text-neutral-500 hover:text-white p-1"
-                              title="Verify on TronScan Explorer"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </td>
+                          {/* TxID */}
+                          <td className="py-4 px-6 font-mono text-xs">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-indigo-300 select-all truncate max-w-[180px] md:max-w-[280px]">
+                                  {item.transactionHash}
+                                </span>
+                                <button
+                                  onClick={() => handleCopy(item.transactionHash, "Transaction Hash")}
+                                  className="text-neutral-500 hover:text-white p-0.5"
+                                  title="Copy TXID"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                                <a
+                                  href={`https://tronscan.org/#/transaction/${item.transactionHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-neutral-500 hover:text-indigo-400 p-0.5"
+                                  title="Check on TronScan"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                              {item.walletAddress && (
+                                <div className="text-[10px] text-neutral-500 truncate max-w-[220px]">
+                                  Sender: {item.walletAddress}
+                                </div>
+                              )}
+                            </div>
+                          </td>
 
-                      {/* Payment Info */}
-                      <td className="p-4 whitespace-nowrap">
-                        <div className="space-y-0.5 text-xs">
-                          <span className="font-extrabold text-indigo-300">{item.price}</span>
-                          <span className="block text-[10px] text-neutral-500 uppercase font-semibold">{item.network}</span>
-                        </div>
-                      </td>
+                          {/* Status */}
+                          <td className="py-4 px-6">
+                            {item.paymentStatus === "pending" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-bold">
+                                Pending
+                              </span>
+                            )}
+                            {item.paymentStatus === "verified" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-bold">
+                                <ShieldCheck className="w-3.5 h-3.5" /> Approved
+                              </span>
+                            )}
+                            {item.paymentStatus === "rejected" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+                                <ShieldAlert className="w-3.5 h-3.5" /> Rejected
+                              </span>
+                            )}
+                          </td>
 
-                      {/* Status */}
-                      <td className="p-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                          item.status === "approved"
-                            ? "bg-green-500/10 text-green-400 border-green-500/20"
-                            : item.status === "rejected"
-                            ? "bg-red-500/10 text-red-400 border-red-500/20"
-                            : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
-                        }`}>
-                          {item.status === "approved" && <Check className="w-3 h-3" />}
-                          {item.status === "rejected" && <ShieldAlert className="w-3 h-3" />}
-                          {item.status.toUpperCase()}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="p-4 whitespace-nowrap text-right text-xs">
-                        <div className="flex items-center justify-end gap-2">
-                          {item.status === "pending" && (
-                            <button
-                              onClick={() => handleApprovePayment(item.id, item.email)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold cursor-pointer transition-colors"
-                            >
-                              <Check className="w-3.5 h-3.5" /> Approve
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeletePayment(item.id)}
-                            className="p-2 border border-neutral-850 hover:border-red-500/20 hover:text-red-400 rounded-lg text-neutral-500 transition-colors cursor-pointer"
-                            title="Delete Record"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="p-12 text-center text-neutral-500">
-                      <div className="space-y-2">
-                        <div className="w-12 h-12 rounded-full bg-neutral-950 border border-neutral-850 flex items-center justify-center mx-auto text-neutral-700">
-                          <DollarSign className="w-6 h-6" />
-                        </div>
-                        <h4 className="font-bold text-neutral-400">No payment receipts found</h4>
-                        <p className="text-xs text-neutral-600 max-w-xs mx-auto">
-                          {searchQuery ? "No receipts match your search filter." : "Proof of payments submitted via checkout will appear here for verification."}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                          {/* Actions */}
+                          <td className="py-4 px-6 text-right">
+                            {item.paymentStatus === "pending" ? (
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  onClick={() => handleAction(item.id, "approve")}
+                                  disabled={actionLoadingId === item.id}
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-500 text-white font-bold h-8 rounded-lg cursor-pointer"
+                                >
+                                  {actionLoadingId === item.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Check className="w-3.5 h-3.5 mr-1" />
+                                  )}
+                                  Approve
+                                </Button>
+                                <Button
+                                  onClick={() => handleAction(item.id, "reject")}
+                                  disabled={actionLoadingId === item.id}
+                                  size="sm"
+                                  className="bg-red-600 hover:bg-red-500 text-white font-bold h-8 rounded-lg cursor-pointer"
+                                >
+                                  {actionLoadingId === item.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  )}
+                                  Reject
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-neutral-500 font-medium">Reviewed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-20 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-neutral-950 border border-neutral-800 flex items-center justify-center mx-auto text-neutral-600">
+                    <UserIcon className="w-8 h-8" />
+                  </div>
+                  <div className="max-w-xs mx-auto">
+                    <h4 className="font-bold text-neutral-300 mb-1">No Payments Found</h4>
+                    <p className="text-neutral-500 text-sm">
+                      {searchQuery ? "No payment receipts matches the search query." : "Pending user registrations will list here."}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
-
       <Footer />
     </div>
-  );
+  )
 }
