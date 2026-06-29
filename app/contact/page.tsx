@@ -10,9 +10,24 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Mail, Phone, MapPin, Send } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function ContactPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const active = localStorage.getItem("gaur_premium_active") === "true";
+      if (!active) {
+        router.push("/");
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [router]);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -47,6 +62,14 @@ export default function ContactPage() {
       ...prev,
       [e.target.name]: e.target.value,
     }))
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
   }
 
   return (

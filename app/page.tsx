@@ -17,7 +17,11 @@ import {
   Download, 
   Search,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  Lock,
+  ArrowRight,
+  ChevronLeft,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -72,6 +76,15 @@ export default function Home() {
   const [customAlias, setCustomAlias] = useState("");
   const [utmAlias, setUtmAlias] = useState("");
 
+  // Locked Gate States
+  const [gateStep, setGateStep] = useState<1 | 2 | 3>(1);
+  const [gateTxHash, setGateTxHash] = useState("");
+  const [gateSenderWallet, setGateSenderWallet] = useState("");
+  const [gateEmail, setGateEmail] = useState("");
+  const [gateSubmitting, setGateSubmitting] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+  const [downloadingGateQr, setDownloadingGateQr] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
@@ -81,7 +94,41 @@ export default function Home() {
       const checkPremium = () => {
         const active = localStorage.getItem("gaur_premium_active") === "true";
         setIsPremium(active);
+        
+        // Active state sync with pending payment submissions
+        const pendingId = localStorage.getItem("gaur_pending_payment_id");
+        if (pendingId && !active) {
+          const savedPayments = localStorage.getItem("gaur_premium_payments");
+          if (savedPayments) {
+            try {
+              const payments = JSON.parse(savedPayments);
+              const found = payments.find((p: any) => p.id === pendingId);
+              if (found) {
+                if (found.status === "approved") {
+                  localStorage.setItem("gaur_premium_active", "true");
+                  localStorage.removeItem("gaur_pending_payment_id");
+                  setIsPremium(true);
+                  toast.success("Congratulations! Premium features have been unlocked!");
+                } else if (found.status === "rejected") {
+                  localStorage.removeItem("gaur_pending_payment_id");
+                  toast.error("Your payment details review was rejected. Please submit again.");
+                  setGateStep(1);
+                } else {
+                  setGateStep(3);
+                  setGateEmail(found.email);
+                  setGateTxHash(found.txHash);
+                }
+              } else {
+                localStorage.removeItem("gaur_pending_payment_id");
+                setGateStep(1);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
       };
+      
       checkPremium();
       const interval = setInterval(checkPremium, 1500);
 
@@ -143,6 +190,87 @@ export default function Home() {
     link.click();
     link.remove();
     toast.success("CSV file downloaded successfully!");
+  };
+
+  const handleCopyGateAddress = () => {
+    navigator.clipboard.writeText("0xe36D9ff22151d880fAAf5588040d93E577592909");
+    toast.success("Wallet Address copied!");
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
+
+  const handleDownloadGateQr = () => {
+    setDownloadingGateQr(true);
+    const address = "0xe36D9ff22151d880fAAf5588040d93E577592909";
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(address)}`;
+    fetch(qrUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "gaur_links_checkout_qr.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success("QR Code downloaded!");
+        setDownloadingGateQr(false);
+      })
+      .catch(() => {
+        window.open(qrUrl, "_blank");
+        setDownloadingGateQr(false);
+      });
+  };
+
+  const handleSubmitGateProof = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gateTxHash.trim()) {
+      toast.error("Transaction Hash is required");
+      return;
+    }
+    const tronHashRegex = /^[a-fA-F0-9]{64}$/;
+    if (!tronHashRegex.test(gateTxHash.trim())) {
+      toast.error("Invalid Transaction Hash. Must be a 64-character hex string.");
+      return;
+    }
+    if (!gateEmail.trim()) {
+      toast.error("Email Address is required");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(gateEmail.trim())) {
+      toast.error("Please enter a valid Email Address");
+      return;
+    }
+    setGateSubmitting(true);
+    setTimeout(() => {
+      try {
+        const savedPayments = localStorage.getItem("gaur_premium_payments");
+        const payments = savedPayments ? JSON.parse(savedPayments) : [];
+        const newId = Date.now().toString();
+        const newPayment = {
+          id: newId,
+          txHash: gateTxHash.trim(),
+          senderWallet: gateSenderWallet.trim(),
+          email: gateEmail.trim().toLowerCase(),
+          status: "pending",
+          timestamp: new Date().toLocaleString(),
+          price: "10 USDT",
+          network: "TRON (TRC20)"
+        };
+        payments.push(newPayment);
+        localStorage.setItem("gaur_premium_payments", JSON.stringify(payments));
+        localStorage.setItem("gaur_pending_payment_id", newId);
+        setGateStep(3);
+        toast.success("Payment submitted successfully. Your payment is under review.");
+      } catch (err) {
+        console.error(err);
+        toast.error("Submission failed. Please try again.");
+      } finally {
+        setGateSubmitting(false);
+      }
+    }, 1500);
   };
 
   // Generate WhatsApp Link
@@ -372,19 +500,195 @@ export default function Home() {
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="container mx-auto px-4 pt-32 pb-16 relative z-10 max-w-6xl">
-        {/* Header Hero */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-4 animate-pulse">
-            <Sparkles className="w-4 h-4" />
-            Stateless Link Generation Workspace
+        {!isPremium ? (
+          /* Locked Payment Gate screen */
+          <div className="max-w-xl mx-auto space-y-6">
+            <div className="text-center space-y-2 mb-8 animate-in fade-in duration-300">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold animate-pulse">
+                <Lock className="w-4 h-4" /> Premium Access Required
+              </div>
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-400">
+                Unlock GAUR LINKS
+              </h1>
+              <p className="text-neutral-400 text-sm max-w-md mx-auto leading-relaxed">
+                Welcome to GAUR LINKS. Purchase premium access to activate redirects, custom path aliases, UTM campaign tracking, QR code sharing, and CSV data logs.
+              </p>
+            </div>
+
+            <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl shadow-2xl p-6 md:p-8 rounded-2xl overflow-hidden relative">
+              <div className="absolute -top-24 -left-24 -z-10 h-48 w-48 rounded-full bg-indigo-600/10 blur-3xl"></div>
+              <div className="absolute -bottom-24 -right-24 -z-10 h-48 w-48 rounded-full bg-purple-600/10 blur-3xl"></div>
+
+              {gateStep === 1 && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-neutral-950/60 border border-neutral-800">
+                    <span className="text-sm font-semibold text-neutral-400">Lifetime Premium Access</span>
+                    <div className="text-right">
+                      <span className="text-2xl font-black text-indigo-400">10 USDT</span>
+                      <span className="block text-[10px] text-neutral-500 font-medium">TRON (TRC20) Network</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center justify-center space-y-3 bg-neutral-950/30 p-4 rounded-xl border border-neutral-800/40">
+                    <div className="p-3 bg-white rounded-xl shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent("0xe36D9ff22151d880fAAf5588040d93E577592909")}`}
+                        alt="Wallet Address QR" 
+                        className="h-40 w-40"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleDownloadGateQr}
+                      disabled={downloadingGateQr}
+                      className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer"
+                    >
+                      {downloadingGateQr ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                      Download QR Code
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">Recipient Address</label>
+                    <div className="flex items-center gap-2 bg-neutral-950 border border-neutral-800 rounded-lg p-3">
+                      <span className="text-xs font-mono text-indigo-300 select-all truncate flex-grow">
+                        0xe36D9ff22151d880fAAf5588040d93E577592909
+                      </span>
+                      <button 
+                        onClick={handleCopyGateAddress}
+                        className="p-1.5 text-neutral-400 hover:text-white rounded-md bg-neutral-900 border border-neutral-800 cursor-pointer"
+                      >
+                        {copiedAddress ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-yellow-500/80 leading-normal">
+                      ⚠️ Send exactly **10 USDT** on the **TRON (TRC20)** network to this address. Sending other assets will result in loss.
+                    </p>
+                  </div>
+
+                  <button 
+                    onClick={() => setGateStep(2)}
+                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-600/20 cursor-pointer"
+                  >
+                    I've Sent Payment <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {gateStep === 2 && (
+                <form onSubmit={handleSubmitGateProof} className="space-y-4 animate-in fade-in duration-200">
+                  <button 
+                    type="button"
+                    onClick={() => setGateStep(1)}
+                    className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white mb-2 cursor-pointer"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" /> Back to Payment Details
+                  </button>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="gate-tx-hash" className="text-xs font-bold text-neutral-300 uppercase tracking-wider block">
+                      Transaction Hash (TXID) <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                      id="gate-tx-hash"
+                      type="text"
+                      required
+                      value={gateTxHash}
+                      onChange={(e) => setGateTxHash(e.target.value)}
+                      placeholder="e.g. 7c4384bf03a693b769229e614bc47d7e600f72365e8..."
+                      className="w-full bg-neutral-950 border border-neutral-800 text-white placeholder-neutral-600 p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm font-mono"
+                    />
+                    <p className="text-[10px] text-neutral-500 font-sans">
+                      Enter the 64-character TRON transaction identifier.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="gate-sender-wallet" className="text-xs font-bold text-neutral-300 uppercase tracking-wider block">
+                      Your Wallet Address <span className="text-neutral-500 font-normal">(Optional)</span>
+                    </label>
+                    <input 
+                      id="gate-sender-wallet"
+                      type="text"
+                      value={gateSenderWallet}
+                      onChange={(e) => setGateSenderWallet(e.target.value)}
+                      placeholder="Your sender address..."
+                      className="w-full bg-neutral-950 border border-neutral-800 text-white placeholder-neutral-600 p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="gate-user-email" className="text-xs font-bold text-neutral-300 uppercase tracking-wider block">
+                      Your Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                      id="gate-user-email"
+                      type="email"
+                      required
+                      value={gateEmail}
+                      onChange={(e) => setGateEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full bg-neutral-950 border border-neutral-800 text-white placeholder-neutral-600 p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={gateSubmitting}
+                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-600/20 cursor-pointer"
+                  >
+                    {gateSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                      </>
+                    ) : (
+                      <>
+                        Submit Verification Proof <Check className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {gateStep === 3 && (
+                <div className="text-center py-6 space-y-6 animate-in fade-in duration-200">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 mb-2">
+                    <History className="h-8 w-8 animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold font-[family-name:var(--font-poppins)] text-neutral-100">Review in Progress</h3>
+                    <p className="text-sm text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                      Payment submitted successfully. Your payment is under review.
+                    </p>
+                  </div>
+                  <div className="bg-neutral-950/60 border border-neutral-800 p-4 rounded-xl text-left max-w-sm mx-auto space-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-neutral-500">Transaction ID:</span> <span className="font-mono text-indigo-300 truncate max-w-[200px]">{gateTxHash}</span></div>
+                    <div className="flex justify-between"><span className="text-neutral-500">Target Email:</span> <span className="text-neutral-300">{gateEmail}</span></div>
+                    <div className="flex justify-between"><span className="text-neutral-500">Status:</span> <span className="text-yellow-500 font-bold">Pending Review</span></div>
+                  </div>
+                  <div className="text-xs text-neutral-500 leading-normal max-w-xs mx-auto">
+                    Your payment details are being reviewed by the administrator. Access will be granted once approved.
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-400">
-            GAUR DYNAMIC LINKS
-          </h1>
-          <p className="text-neutral-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            Generate stateless redirection links, WhatsApp direct chat URLs, and campaign UTM codes instantly with built-in QR code sharing.
-          </p>
-        </div>
+        ) : (
+          /* Standard workspace content if premium is true */
+          <>
+            {/* Header Hero */}
+            <div className="text-center mb-12 animate-in fade-in duration-300">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-4 animate-pulse">
+                <Sparkles className="w-4 h-4" />
+                Stateless Link Generation Workspace
+              </div>
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-400">
+                GAUR DYNAMIC LINKS
+              </h1>
+              <p className="text-neutral-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                Generate stateless redirection links, WhatsApp direct chat URLs, and campaign UTM codes instantly with built-in QR code sharing.
+              </p>
+            </div>
 
         {/* Workspace Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
@@ -832,7 +1136,9 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </>
+    )}
+  </div>
       <Footer />
       <PaymentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
