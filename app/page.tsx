@@ -540,7 +540,7 @@ export default function Home() {
 
       <div className="container mx-auto px-4 pt-32 pb-16 relative z-10 max-w-6xl">
         {/* CASE 1: NOT LOGGED IN - SHOW PAYMENT / AUTHENTICATION GATE */}
-        {!user ? (
+        {false ? (
           <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2 mb-8 animate-in fade-in duration-300">
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold animate-pulse">
@@ -824,7 +824,7 @@ export default function Home() {
           /* CASE 2: LOGGED IN USER CHECKLIST */
           <>
             {/* Case 2A: Payment is Pending */}
-            {user.role === "user" && user.paymentStatus === "pending" && (
+            {user && user.role === "user" && user.paymentStatus === "pending" && (
               <div className="max-w-md mx-auto py-12 animate-in fade-in duration-300">
                 <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl p-8 text-center rounded-2xl relative overflow-hidden">
                   <div className="absolute -top-24 -left-24 -z-10 h-48 w-48 rounded-full bg-yellow-500/10 blur-3xl"></div>
@@ -859,7 +859,7 @@ export default function Home() {
             )}
 
             {/* Case 2B: Payment is Rejected */}
-            {user.role === "user" && user.paymentStatus === "rejected" && (
+            {user && user.role === "user" && user.paymentStatus === "rejected" && (
               <div className="max-w-md mx-auto py-12 animate-in fade-in duration-300">
                 <Card className="bg-neutral-900/60 border-neutral-800 backdrop-blur-xl p-8 text-center rounded-2xl relative overflow-hidden">
                   <div className="absolute -top-24 -left-24 -z-10 h-48 w-48 rounded-full bg-red-500/10 blur-3xl"></div>
@@ -901,7 +901,7 @@ export default function Home() {
             )}
 
             {/* Case 2C: User is Verified or is Admin - Reveal standard Workspace dashboard */}
-            {(user.role === "admin" || user.paymentStatus === "verified") && (
+            {(!user || user.role === "admin" || user.paymentStatus === "verified") && (
               <>
                 {/* Header Hero */}
                 <div className="text-center mb-12 animate-in fade-in duration-300">

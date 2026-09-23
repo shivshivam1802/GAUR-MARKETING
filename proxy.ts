@@ -33,7 +33,19 @@ export function proxy(request: NextRequest) {
   if (pathname === "/link") {
     const target = url.searchParams.get("url")
     if (target) {
-      return NextResponse.redirect(target)
+      const innerParams = new URLSearchParams()
+      url.searchParams.forEach((value, key) => {
+        if (key !== "url") {
+          innerParams.append(key, value)
+        }
+      })
+
+      const destination = new URL(target)
+      innerParams.forEach((value, key) => {
+        destination.searchParams.append(key, value)
+      })
+
+      return NextResponse.redirect(destination)
     }
     return NextResponse.redirect(new URL("/", request.url))
   }
