@@ -8,7 +8,11 @@ export const sql = neon(databaseUrl || "")
 export function normalizeTargetUrl(rawUrl: string) {
   const trimmed = rawUrl.trim()
   if (!trimmed) return ""
-  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+  const hasHttpProtocol = /^https?:\/\//i.test(trimmed)
+  const hasExplicitProtocol = /^[a-z][a-z\d+.-]*:/i.test(trimmed)
+  const isHostWithPort = /^[^/:?#]+:\d+(?:[/?#]|$)/.test(trimmed)
+  if (hasExplicitProtocol && !hasHttpProtocol && !isHostWithPort) return ""
+  const candidate = hasHttpProtocol ? trimmed : trimmed.startsWith("//") ? `https:${trimmed}` : `https://${trimmed}`
 
   try {
     const parsed = new URL(candidate)
