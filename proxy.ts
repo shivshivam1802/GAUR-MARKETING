@@ -29,27 +29,6 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl
   const { pathname } = url
 
-  // Handle /link?url=...
-  if (pathname === "/link") {
-    const target = url.searchParams.get("url")
-    if (target) {
-      const innerParams = new URLSearchParams()
-      url.searchParams.forEach((value, key) => {
-        if (key !== "url") {
-          innerParams.append(key, value)
-        }
-      })
-
-      const destination = new URL(target)
-      innerParams.forEach((value, key) => {
-        destination.searchParams.append(key, value)
-      })
-
-      return NextResponse.redirect(destination)
-    }
-    return NextResponse.redirect(new URL("/", request.url))
-  }
-
   const token = request.cookies.get("gaur_session")?.value
 
   const protectedPaths = ["/about", "/services", "/contact"]
