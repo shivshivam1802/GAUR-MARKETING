@@ -22,21 +22,8 @@ export const metadata: Metadata = {
   keywords:
     "GAUR LINKS, Dynamic Redirector, Smart Redirect, WhatsApp Link Generator, UTM Builder, QR Code Generator, Smart Links, URL Shortener, Marketing Tools",
   icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
+    icon: "/icon.svg",
+    apple: "/icon.svg",
   },
   openGraph: {
     title: "GAUR LINKS – Dynamic Redirector & Smart Link Generator",
@@ -51,7 +38,7 @@ export const metadata: Metadata = {
     description: "Build WhatsApp links, Smart Redirects, and UTM Campaign URLs in seconds.",
   },
   applicationName: "GAUR LINKS",
-  generator: 'v0.app'
+  generator: "Next.js"
 }
 
 const jsonLd = {

@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "GAUR LINKS is a powerful smart link generator that lets users create WhatsApp direct chat links, dynamic redirects, UTM campaign URLs, QR codes, and shareable smart links instantly.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0a0a0a",
-    theme_color: "#4f46e5",
+    background_color: "#f4f1ea",
+    theme_color: "#202522",
     icons: [
       {
         src: "/icon.svg",
@@ -17,14 +17,9 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/svg+xml",
       },
       {
-        src: "/icon-dark-32x32.png",
-        sizes: "32x32",
-        type: "image/png",
-      },
-      {
-        src: "/apple-icon.png",
+        src: "/icon.svg",
         sizes: "180x180",
-        type: "image/png",
+        type: "image/svg+xml",
       },
     ],
   }
