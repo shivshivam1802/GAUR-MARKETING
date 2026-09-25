@@ -53,7 +53,7 @@ interface UserProfile {
   paymentStatus: "pending" | "verified" | "rejected"
 }
 
-export default function Home() {
+function LegacyHome() {
   const [isClient, setIsClient] = useState(false)
   const [origin, setOrigin] = useState("http://localhost:3000")
   const [history, setHistory] = useState<HistoryItem[]>([])
@@ -1413,3 +1413,5 @@ export default function Home() {
     </div>
   )
 }
+
+export { AuthHome as default } from "@/components/auth-home"
