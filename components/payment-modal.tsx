@@ -32,7 +32,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const [senderWallet, setSenderWallet] = useState("");
   const [email, setEmail] = useState("");
 
-  const walletAddress = "0xe36D9ff22151d880fAAf5588040d93E577592909";
+  const walletAddress = process.env.NEXT_PUBLIC_PAYMENT_WALLET_ADDRESS || "";
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(walletAddress)}`;
 
   if (!isOpen) return null;

@@ -26,7 +26,7 @@ export function AuthHome() {
   }, [])
 
   const updateField = (name: string, value: string) => setFields((current) => ({ ...current, [name]: value }))
-  const walletAddress = "0xe36D9ff22151d880fAAf5588040d93E577592909"
+  const walletAddress = process.env.NEXT_PUBLIC_PAYMENT_WALLET_ADDRESS || ""
   const walletQr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(walletAddress)}`
 
   const copyWallet = async () => {

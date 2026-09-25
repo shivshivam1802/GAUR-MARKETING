@@ -106,7 +106,7 @@ function LegacyHome() {
   const [activeStatsUrl, setActiveStatsUrl] = useState("")
   const [copiedLink, setCopiedLink] = useState(false)
 
-  const walletAddress = "0xe36D9ff22151d880fAAf5588040d93E577592909"
+  const walletAddress = process.env.NEXT_PUBLIC_PAYMENT_WALLET_ADDRESS || ""
 
   useEffect(() => {
     setIsClient(true)
