@@ -7,11 +7,14 @@ export async function GET(request: Request) {
   const page = Math.max(1, Number(url.searchParams.get("page") || "1"))
   const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") || "12")))
   const offset = (page - 1) * limit
+  const search = url.searchParams.get("q")?.trim() || ""
+  const searchPattern = `%${search}%`
 
   await ensureLinksTable()
   const rows = await sql`
     SELECT code, target_url, visits, created_at
     FROM links
+    WHERE (${search === ""} OR code ILIKE ${searchPattern} OR target_url ILIKE ${searchPattern})
     ORDER BY created_at DESC
     LIMIT ${limit + 1} OFFSET ${offset}
   `

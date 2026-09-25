@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, Link2, MessageCircle, RefreshCw, ScrollText } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, Link2, MessageCircle, RefreshCw, Search, ScrollText } from "lucide-react"
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
 
 type Mode = "forwarder" | "whatsapp" | "redirect"
@@ -22,6 +22,8 @@ export function LinkWorkspace() {
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [searchInput, setSearchInput] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
   const sentinel = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,10 +39,10 @@ export function LinkWorkspace() {
     return () => observer.disconnect()
   }, [hasMore, loadingMore, page])
 
-  const loadLinks = async (nextPage: number) => {
+  const loadLinks = async (nextPage: number, term = searchTerm) => {
     setLoadingMore(true)
     try {
-      const response = await fetch(`/api/links?page=${nextPage}&limit=12`)
+      const response = await fetch(`/api/links?page=${nextPage}&limit=12&q=${encodeURIComponent(term)}`)
       if (!response.ok) return
       const data: LinkPage = await response.json()
       setLinks((current) => nextPage === 1 ? data.links : [...current, ...data.links])
@@ -49,6 +51,14 @@ export function LinkWorkspace() {
     } finally {
       setLoadingMore(false)
     }
+  }
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const nextTerm = searchInput.trim()
+    setSearchTerm(nextTerm)
+    setHasMore(true)
+    loadLinks(1, nextTerm)
   }
 
   const create = async (event: FormEvent<HTMLFormElement>) => {
@@ -112,10 +122,10 @@ export function LinkWorkspace() {
                 <ModeButton active={mode === "redirect"} onClick={() => setMode("redirect")} icon={<Link2 size={15} />} label="Code redirect" />
               </div>
               {mode === "whatsapp" ? <>
-                <label className="block text-sm font-semibold">Phone number with country code<input required value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="919999999999" className="mt-2 w-full border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /></label>
-                <label className="mt-5 block text-sm font-semibold">Opening message <span className="font-normal text-[#202522]/45">optional</span><textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} className="mt-2 w-full resize-y border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /></label>
-              </> : <label className="block text-sm font-semibold">Destination URL<input required type="url" placeholder="https://example.com/offer" value={targetUrl} onChange={(event) => setTargetUrl(event.target.value)} className="mt-2 w-full border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /></label>}
-              {mode === "redirect" && <label className="mt-5 block text-sm font-semibold">Custom code <span className="font-normal text-[#202522]/45">optional</span><div className="mt-2 flex items-center border border-[#202522]/20"><span className="px-3 text-sm text-[#202522]/40">/r/</span><input value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="spring-offer" className="min-w-0 flex-1 bg-transparent px-1 py-3 outline-none" /></div></label>}
+                <label className="block text-sm font-semibold">Phone number with country code<input required inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="919999999999" aria-describedby="phone-help" className="mt-2 w-full border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /><span id="phone-help" className="mt-2 block text-xs font-normal text-[#202522]/50">Digits only, including country code. Example: 919999999999.</span></label>
+                <label className="mt-5 block text-sm font-semibold">Opening message <span className="font-normal text-[#202522]/45">optional</span><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} rows={3} placeholder="Hi, I found you through your link..." className="mt-2 w-full resize-y border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /></label>
+              </> : <label className="block text-sm font-semibold">Destination URL<input required type="url" inputMode="url" autoComplete="url" placeholder="https://example.com/offer" value={targetUrl} onChange={(event) => setTargetUrl(event.target.value)} aria-describedby="url-help" className="mt-2 w-full border border-[#202522]/20 bg-transparent px-3 py-3 outline-none focus:border-[#bd5b32]" /><span id="url-help" className="mt-2 block text-xs font-normal text-[#202522]/50">The destination is normalized, so trailing-slash variants share one link and count.</span></label>}
+              {mode === "redirect" && <label className="mt-5 block text-sm font-semibold">Custom code <span className="font-normal text-[#202522]/45">optional</span><div className="mt-2 flex items-center border border-[#202522]/20"><span className="px-3 text-sm text-[#202522]/40">/r/</span><input pattern="[A-Za-z0-9_-]+" title="Use letters, numbers, underscores, or dashes" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="spring-offer" className="min-w-0 flex-1 bg-transparent px-1 py-3 outline-none" /></div><span className="mt-2 block text-xs font-normal text-[#202522]/50">Letters, numbers, underscores, and dashes only.</span></label>}
               {error && <p className="mt-4 text-sm text-[#bd5b32]">{error}</p>}
               <button disabled={busy} className="mt-6 inline-flex items-center gap-2 bg-[#202522] px-5 py-3 text-sm font-semibold text-[#f4f1ea] hover:bg-[#bd5b32] disabled:opacity-50">{busy ? "Creating..." : "Create tracked link"}<ArrowUpRight size={16} /></button>
             </form>
@@ -133,7 +143,7 @@ export function LinkWorkspace() {
 
         {result && <section className="border-t border-[#202522]/15 py-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#bd5b32]">Latest link</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">{result.visits.toLocaleString()} visits recorded</h2></div><button onClick={refresh} className="inline-flex items-center gap-2 text-sm font-semibold hover:text-[#bd5b32]"><RefreshCw size={15} /> Refresh count</button></div><div className="mt-7 grid gap-4 md:grid-cols-3"><Result label="Tracked URL" value={trackedUrl} onCopy={() => copy(trackedUrl)} /><Result label="Direct forwarder" value={directUrl} onCopy={() => copy(directUrl)} /><div className="border border-[#202522]/15 bg-[#fbfaf6] p-5"><p className="text-xs uppercase tracking-[0.16em] text-[#202522]/45">Destination</p><p className="mt-4 break-all text-sm leading-6">{result.target_url}</p><Link href={`/stats/${encodeURIComponent(result.code)}`} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4">View stats <ExternalLink size={14} /></Link></div></div></section>}
 
-        <section className="border-t border-[#202522]/15 py-10"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#bd5b32]">Link ledger</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">Recent links and visits</h2></div><button onClick={() => loadLinks(1)} className="inline-flex items-center gap-2 text-sm font-semibold hover:text-[#bd5b32]"><RefreshCw size={15} /> Refresh</button></div><div className="mt-6 divide-y divide-[#202522]/15 border-y border-[#202522]/15">{links.map((link) => <LedgerRow key={link.code} link={link} origin={origin} />)}{!links.length && !loadingMore && <p className="py-8 text-sm text-[#202522]/55">No tracked links yet.</p>}</div><div ref={sentinel} className="flex justify-center py-8 text-sm text-[#202522]/50">{loadingMore ? "Loading more links..." : hasMore ? "Scroll for more" : "All links loaded"}</div></section>
+        <section className="border-t border-[#202522]/15 py-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#bd5b32]">Link ledger</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">Recent links and visits</h2></div><button onClick={() => loadLinks(1)} className="inline-flex items-center gap-2 text-sm font-semibold hover:text-[#bd5b32]"><RefreshCw size={15} /> Refresh</button></div><form onSubmit={submitSearch} className="mt-6 flex max-w-2xl border border-[#202522]/20 bg-[#fbfaf6] focus-within:border-[#bd5b32]"><Search className="m-3 shrink-0 text-[#202522]/45" size={18} /><input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by destination or link code" aria-label="Search links and visit counts" className="min-w-0 flex-1 bg-transparent py-3 pr-3 text-sm outline-none" /><button type="submit" className="border-l border-[#202522]/15 px-4 text-sm font-semibold hover:bg-[#202522] hover:text-[#f4f1ea]">Search</button></form>{searchTerm && <p className="mt-3 text-xs text-[#202522]/50">Showing results for “{searchTerm}”.</p>}<div className="mt-6 divide-y divide-[#202522]/15 border-y border-[#202522]/15">{links.map((link) => <LedgerRow key={link.code} link={link} origin={origin} />)}{!links.length && !loadingMore && <p className="py-8 text-sm text-[#202522]/55">No tracked links match this search.</p>}</div><div ref={sentinel} className="flex justify-center py-8 text-sm text-[#202522]/50">{loadingMore ? "Loading more links..." : hasMore ? "Scroll for more" : "All matching links loaded"}</div></section>
       </div>
     </main>
   )
