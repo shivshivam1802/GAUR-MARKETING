@@ -11,6 +11,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
+    if (
+      process.env.DEMO_EMAIL &&
+      process.env.DEMO_PASSWORD &&
+      email.toLowerCase() === process.env.DEMO_EMAIL.toLowerCase() &&
+      password === process.env.DEMO_PASSWORD
+    ) {
+      const payload = {
+        id: "demo-user",
+        email: process.env.DEMO_EMAIL,
+        fullName: process.env.DEMO_NAME || "Demo Workspace",
+        role: "admin" as const,
+        paymentStatus: "verified" as const,
+      }
+      const token = signJwt(payload)
+      const response = NextResponse.json({ success: true, user: payload })
+      response.cookies.set("gaur_session", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+        sameSite: "lax",
+      })
+      return response
+    }
+
     const db = readDb()
     const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase())
 

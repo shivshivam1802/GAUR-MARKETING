@@ -71,9 +71,9 @@ export function AuthHome() {
             <img src="/icon.svg" alt="" className="size-9 rounded-lg" />
             <span>GAUR LINKS</span>
           </Link>
-          <Link href="/generate" className="inline-flex items-center gap-2 text-sm font-medium hover:underline">
+          {user && <Link href="/generate" className="inline-flex items-center gap-2 text-sm font-medium hover:underline">
             Open builder <ArrowRight size={15} />
-          </Link>
+          </Link>}
         </header>
 
         <div className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1fr_380px] lg:gap-24">

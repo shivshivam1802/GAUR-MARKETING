@@ -8,14 +8,40 @@ export const sql = neon(databaseUrl || "")
 export function normalizeTargetUrl(rawUrl: string) {
   const trimmed = rawUrl.trim()
   if (!trimmed) return ""
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed}`
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+
+  try {
+    const parsed = new URL(candidate)
+    if (parsed.pathname.length > 1) parsed.pathname = parsed.pathname.replace(/\/+$/, "")
+    return parsed.toString()
+  } catch {
+    return candidate
+  }
 }
 
 export function buildLinkCode(targetUrl: string, alias?: string) {
   const normalized = normalizeTargetUrl(targetUrl)
   if (alias) return alias
   return `link_${crypto.createHash("sha256").update(normalized).digest("base64url").replace(/=+$/g, "").slice(0, 16)}`
+}
+
+export function buildForwarderTarget(requestUrl: string) {
+  const request = new URL(requestUrl)
+  const targetParam = request.searchParams.get("url")
+  if (!targetParam) return ""
+
+  let destination: URL
+  try {
+    destination = new URL(normalizeTargetUrl(targetParam))
+  } catch {
+    return ""
+  }
+
+  for (const [key, value] of request.searchParams.entries()) {
+    if (key !== "url") destination.searchParams.append(key, value)
+  }
+
+  return normalizeTargetUrl(destination.toString())
 }
 
 export async function ensureLinksTable() {
