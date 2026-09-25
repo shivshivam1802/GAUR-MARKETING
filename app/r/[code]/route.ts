@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation"
+import { NextResponse } from "next/server"
 import { ensureLinksTable, sql } from "@/lib/neon"
 
 type LinkRow = { target_url: string }
 
-export default async function Page({ params }: { params: Promise<{ code: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params
 
   try {
@@ -15,10 +15,12 @@ export default async function Page({ params }: { params: Promise<{ code: string 
       RETURNING target_url
     `) as LinkRow[]
 
-    if (rows[0]?.target_url) redirect(rows[0].target_url)
+    if (rows[0]?.target_url) {
+      return NextResponse.redirect(rows[0].target_url)
+    }
   } catch (error) {
     console.error("Failed to forward tracked link:", error)
   }
 
-  redirect("/?error=invalid_url")
+  return NextResponse.redirect(new URL("/?error=invalid_url", _request.url))
 }
