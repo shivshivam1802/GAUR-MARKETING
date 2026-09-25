@@ -103,6 +103,7 @@ export default function Home() {
 
   // Active Generated Link
   const [activeLink, setActiveLink] = useState("")
+  const [activeStatsUrl, setActiveStatsUrl] = useState("")
   const [copiedLink, setCopiedLink] = useState(false)
 
   const walletAddress = "0xe36D9ff22151d880fAAf5588040d93E577592909"
@@ -160,6 +161,23 @@ export default function Home() {
     }
     setHistory(updated)
     localStorage.setItem("gaur_link_history", JSON.stringify(updated))
+  }
+
+  const createTrackedLink = async (targetUrl: string, alias?: string) => {
+    const response = await fetch("/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUrl, alias }),
+    })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to create tracked link")
+    }
+
+    const generatedUrl = `${origin}/r/${encodeURIComponent(data.code)}`
+    setActiveStatsUrl(`${origin}/stats/${encodeURIComponent(data.code)}`)
+    return generatedUrl
   }
 
   // Copy helper
@@ -346,7 +364,7 @@ export default function Home() {
   }
 
   // Generate Smart Redirect Link
-  const handleGenerateRedirect = (e: React.FormEvent) => {
+  const handleGenerateRedirect = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!redirectTarget) {
       toast.error("Please enter a destination URL")
@@ -365,55 +383,37 @@ export default function Home() {
       return
     }
 
-    let generatedUrl = ""
-    if (customAlias.trim() && isPremium) {
-      const alias = customAlias.trim().toLowerCase()
-
-      if (!/^[a-zA-Z0-9_-]+$/.test(alias)) {
-        toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.")
-        return
-      }
-
-      const savedAliases = localStorage.getItem("gaur_link_aliases")
-      const aliases = savedAliases ? JSON.parse(savedAliases) : {}
-
-      if (aliases[alias] && aliases[alias] !== targetUrl) {
-        toast.error("This custom alias is already in use by another link!")
-        return
-      }
-
-      aliases[alias] = targetUrl
-      localStorage.setItem("gaur_link_aliases", JSON.stringify(aliases))
-      generatedUrl = `${origin}/r/${alias}`
-    } else {
-      if (redirectType === "clean") {
-        generatedUrl = `${origin}/link/${encodeURIComponent(targetUrl)}`
-      } else {
-        const encoded = btoa(unescape(encodeURIComponent(targetUrl)))
-        generatedUrl = `${origin}/r/${encoded}`
-      }
+    const alias = customAlias.trim().toLowerCase()
+    if (alias && isPremium && !/^[a-zA-Z0-9_-]+$/.test(alias)) {
+      toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.")
+      return
     }
 
-    setActiveLink(generatedUrl)
+    try {
+      const generatedUrl = await createTrackedLink(targetUrl, alias && isPremium ? alias : undefined)
+      setActiveLink(generatedUrl)
 
-    const newItem: HistoryItem = {
-      id: Date.now().toString(),
-      type: "redirect",
-      title:
-        customAlias.trim() && isPremium
-          ? `Custom Redirect: /r/${customAlias.trim()}`
-          : `Redirect to: ${new URL(targetUrl).hostname}`,
-      originalUrl: targetUrl,
-      generatedUrl: generatedUrl,
-      createdAt: new Date().toLocaleString(),
+      const newItem: HistoryItem = {
+        id: Date.now().toString(),
+        type: "redirect",
+        title:
+          alias && isPremium
+            ? `Custom Redirect: /r/${alias}`
+            : `Redirect to: ${new URL(targetUrl).hostname}`,
+        originalUrl: targetUrl,
+        generatedUrl,
+        createdAt: new Date().toLocaleString(),
+      }
+      saveHistory([newItem, ...history])
+      setCustomAlias("")
+      toast.success("Redirect Link Generated!")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to create link")
     }
-    saveHistory([newItem, ...history])
-    setCustomAlias("")
-    toast.success("Redirect Link Generated!")
   }
 
   // Generate UTM Link
-  const handleGenerateUtm = (e: React.FormEvent) => {
+  const handleGenerateUtm = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!utmTarget) {
       toast.error("Please enter a destination URL")
@@ -434,31 +434,12 @@ export default function Home() {
       if (utmContent) urlObj.searchParams.set("utm_content", utmContent)
 
       const finalUrl = urlObj.toString()
-      let generatedUrl = ""
-
-      if (utmAlias.trim() && isPremium) {
-        const alias = utmAlias.trim().toLowerCase()
-
-        if (!/^[a-zA-Z0-9_-]+$/.test(alias)) {
-          toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.")
-          return
-        }
-
-        const savedAliases = localStorage.getItem("gaur_link_aliases")
-        const aliases = savedAliases ? JSON.parse(savedAliases) : {}
-
-        if (aliases[alias] && aliases[alias] !== finalUrl) {
-          toast.error("This custom alias is already in use by another link!")
-          return
-        }
-
-        aliases[alias] = finalUrl
-        localStorage.setItem("gaur_link_aliases", JSON.stringify(aliases))
-        generatedUrl = `${origin}/r/${alias}`
-      } else {
-        const encoded = btoa(unescape(encodeURIComponent(finalUrl)))
-        generatedUrl = `${origin}/r/${encoded}`
+      const alias = utmAlias.trim().toLowerCase()
+      if (alias && isPremium && !/^[a-zA-Z0-9_-]+$/.test(alias)) {
+        toast.error("Custom alias must contain only letters, numbers, underscores, or dashes.")
+        return
       }
+      const generatedUrl = await createTrackedLink(finalUrl, alias && isPremium ? alias : undefined)
 
       setActiveLink(generatedUrl)
 
@@ -466,8 +447,8 @@ export default function Home() {
         id: Date.now().toString(),
         type: "utm",
         title:
-          utmAlias.trim() && isPremium
-            ? `Custom UTM: /r/${utmAlias.trim()}`
+          alias && isPremium
+            ? `Custom UTM: /r/${alias}`
             : `UTM Campaign for: ${urlObj.hostname}`,
         originalUrl: finalUrl,
         generatedUrl: generatedUrl,
@@ -476,8 +457,8 @@ export default function Home() {
       saveHistory([newItem, ...history])
       setUtmAlias("")
       toast.success("UTM Campaign Link Generated!")
-    } catch {
-      toast.error("Please enter a valid URL")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Please enter a valid URL")
     }
   }
 

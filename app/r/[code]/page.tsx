@@ -1,51 +1,24 @@
-"use client";
+import { redirect } from "next/navigation"
+import { ensureLinksTable, sql } from "@/lib/neon"
 
-import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+type LinkRow = { target_url: string }
 
-export default function Page() {
-  const params = useParams();
-  const router = useRouter();
+export default async function Page({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params
 
-  useEffect(() => {
-    const code = params.code as string;
-    if (!code) return;
+  try {
+    await ensureLinksTable()
+    const rows = (await sql`
+      UPDATE links
+      SET visits = visits + 1
+      WHERE code = ${code}
+      RETURNING target_url
+    `) as LinkRow[]
 
-    // 1. Check custom aliases in localStorage
-    const savedAliases = localStorage.getItem("gaur_link_aliases");
-    if (savedAliases) {
-      try {
-        const aliases = JSON.parse(savedAliases);
-        if (aliases[code]) {
-          const target = aliases[code];
-          window.location.href = target;
-          return;
-        }
-      } catch (e) {
-        console.error("Failed to parse custom aliases:", e);
-      }
-    }
+    if (rows[0]?.target_url) redirect(rows[0].target_url)
+  } catch (error) {
+    console.error("Failed to forward tracked link:", error)
+  }
 
-    // 2. Decode from Base64
-    try {
-      const decodedUrl = atob(code);
-      if (decodedUrl.startsWith("http://") || decodedUrl.startsWith("https://")) {
-        new URL(decodedUrl); // Verify it's a valid URL format
-        window.location.href = decodedUrl;
-      } else {
-        throw new Error("Invalid protocol");
-      }
-    } catch (e) {
-      router.push("/?error=invalid_url");
-    }
-  }, [params.code, router]);
-
-  return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
-        <p className="text-neutral-400 text-sm">Redirecting securely...</p>
-      </div>
-    </div>
-  );
+  redirect("/?error=invalid_url")
 }
