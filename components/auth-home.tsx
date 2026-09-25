@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Link2, LogIn, UserPlus } from "lucide-react"
+import { ArrowRight, LogIn, UserPlus } from "lucide-react"
 import { FormEvent, useEffect, useState } from "react"
 
 export function AuthHome() {
@@ -59,7 +59,7 @@ export function AuthHome() {
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-8">
         <header className="flex items-center justify-between border-b border-[#202522]/15 pb-5">
           <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-[#202522] text-[#f4f1ea]"><Link2 size={17} /></span>
+            <img src="/icon.svg" alt="" className="size-9 rounded-lg" />
             <span>GAUR LINKS</span>
           </Link>
           <Link href="/generate" className="inline-flex items-center gap-2 text-sm font-medium hover:underline">

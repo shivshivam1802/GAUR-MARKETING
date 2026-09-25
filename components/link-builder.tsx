@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, Link2, RefreshCw } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, RefreshCw } from "lucide-react"
 import { FormEvent, useEffect, useState } from "react"
 
 interface LinkRecord { code: string; target_url: string; visits: number }

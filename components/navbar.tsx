@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Link2, Sparkles, Shield, LogOut, Info, Settings, Mail } from "lucide-react"
+import { Sparkles, Shield, LogOut, Info, Settings, Mail } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface UserProfile {
@@ -58,9 +58,7 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform duration-200">
-              <Link2 className="w-5.5 h-5.5 rotate-45" />
-            </div>
+            <img src="/icon.svg" alt="" className="h-10 w-10 rounded-xl transition-transform duration-200 group-hover:scale-105" />
             <div>
               <div className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5 leading-none">
                 GAUR <span className="text-indigo-400">LINKS</span>
