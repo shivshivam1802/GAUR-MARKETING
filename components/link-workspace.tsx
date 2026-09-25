@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, Link2, MessageCircle, RefreshCw, Search, ScrollText } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Copy, ExternalLink, Link2, RefreshCw, Search, ScrollText } from "lucide-react"
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
 
 type Mode = "forwarder" | "whatsapp" | "redirect"
@@ -118,7 +118,7 @@ export function LinkWorkspace() {
             <form onSubmit={create} className="mt-10 border border-[#202522]/15 bg-[#fbfaf6] p-5 sm:p-7">
               <div className="mb-7 grid grid-cols-3 border-b border-[#202522]/15">
                 <ModeButton active={mode === "forwarder"} onClick={() => setMode("forwarder")} icon={<ArrowUpRight size={15} />} label="Forwarder" />
-                <ModeButton active={mode === "whatsapp"} onClick={() => setMode("whatsapp")} icon={<MessageCircle size={15} />} label="WhatsApp" />
+                <ModeButton active={mode === "whatsapp"} onClick={() => setMode("whatsapp")} icon={<WhatsAppIcon />} label="WhatsApp" />
                 <ModeButton active={mode === "redirect"} onClick={() => setMode("redirect")} icon={<Link2 size={15} />} label="Code redirect" />
               </div>
               {mode === "whatsapp" ? <>
@@ -150,6 +150,7 @@ export function LinkWorkspace() {
 }
 
 function ModeButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: ReactNode; label: string }) { return <button type="button" onClick={onClick} className={`flex items-center justify-center gap-2 border-b-2 pb-3 text-sm font-semibold ${active ? "border-[#bd5b32]" : "border-transparent text-[#202522]/45"}`}>{icon}{label}</button> }
+function WhatsAppIcon() { return <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-[#25D366]"><path d="M20.52 3.48A11.82 11.82 0 0 0 12.08 0C5.55 0 .24 5.31.24 11.84c0 2.09.55 4.13 1.59 5.93L.14 23.86l6.23-1.63a11.82 11.82 0 0 0 5.71 1.46h.01c6.53 0 11.84-5.31 11.84-11.84 0-3.17-1.23-6.15-3.41-8.37ZM12.09 21.7h-.01a9.82 9.82 0 0 1-5.01-1.37l-.36-.21-3.69.97.99-3.6-.23-.37a9.82 9.82 0 1 1 8.31 4.58Zm5.39-7.36c-.3-.15-1.78-.88-2.05-.98-.27-.1-.47-.15-.67.15-.2.3-.77.98-.94 1.18-.17.2-.35.22-.65.07-.3-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.63-2.04-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.21 5.09 4.5.71.31 1.27.5 1.7.64.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.17-1.43-.07-.12-.27-.2-.57-.35Z" /></svg> }
 function Info({ title, text }: { title: string; text: string }) { return <div><dt className="font-semibold">{title}</dt><dd className="mt-1 leading-6 text-[#202522]/55">{text}</dd></div> }
 function Result({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) { return <div className="border border-[#202522]/15 bg-[#fbfaf6] p-5"><p className="text-xs uppercase tracking-[0.16em] text-[#202522]/45">{label}</p><p className="mt-4 break-all text-sm leading-6">{value}</p><button type="button" onClick={onCopy} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold hover:text-[#bd5b32]"><Copy size={14} /> Copy</button></div> }
 function LedgerRow({ link, origin }: { link: LinkRecord; origin: string }) { const isWhatsApp = link.target_url.includes("wa.me/"); const type = isWhatsApp ? "WhatsApp" : link.code.startsWith("link_") ? "Forwarder" : "Code redirect"; return <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#bd5b32]"><ScrollText size={14} /> {type}</div><p className="mt-2 truncate text-sm font-semibold">{origin}/r/{link.code}</p><p className="mt-1 truncate text-sm text-[#202522]/50">{link.target_url}</p></div><div className="flex items-center gap-5"><div><p className="text-xs uppercase tracking-[0.16em] text-[#202522]/45">Visits</p><p className="mt-1 text-2xl font-semibold">{link.visits.toLocaleString()}</p></div><Link href={`/stats/${encodeURIComponent(link.code)}`} aria-label={`View stats for ${link.code}`} className="text-[#202522]/60 hover:text-[#bd5b32]"><ExternalLink size={18} /></Link></div></div> }
