@@ -1,3 +1,3 @@
-import Home from "../page"
+import { LinkBuilder } from "@/components/link-builder"
 
-export default Home
+export default LinkBuilder
