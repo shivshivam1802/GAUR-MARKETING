@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, LogIn, UserPlus } from "lucide-react"
+import { ArrowRight, Check, Copy, LogIn, UserPlus, Wallet } from "lucide-react"
 import { FormEvent, useEffect, useState } from "react"
 
 export function AuthHome() {
@@ -9,6 +9,7 @@ export function AuthHome() {
   const [user, setUser] = useState<{ fullName: string; email: string } | null>(null)
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+  const [copiedWallet, setCopiedWallet] = useState(false)
   const [fields, setFields] = useState({
     fullName: "",
     email: "",
@@ -25,6 +26,14 @@ export function AuthHome() {
   }, [])
 
   const updateField = (name: string, value: string) => setFields((current) => ({ ...current, [name]: value }))
+  const walletAddress = "0xe36D9ff22151d880fAAf5588040d93E577592909"
+  const walletQr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(walletAddress)}`
+
+  const copyWallet = async () => {
+    await navigator.clipboard.writeText(walletAddress)
+    setCopiedWallet(true)
+    window.setTimeout(() => setCopiedWallet(false), 1800)
+  }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -100,6 +109,17 @@ export function AuthHome() {
                   <Field label="Email" type="email" value={fields.email} onChange={(value) => updateField("email", value)} />
                   <Field label="Password" type="password" value={fields.password} onChange={(value) => updateField("password", value)} />
                   {mode === "register" && <>
+                    <div className="border border-[#bd5b32]/35 bg-[#bd5b32]/5 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#bd5b32]"><Wallet size={14} /> Web3 access</p>
+                          <p className="mt-2 text-sm font-semibold">Send 10 USDT on TRON (TRC20)</p>
+                          <p className="mt-1 text-xs leading-5 text-[#202522]/55">Submit the transaction hash below for account review.</p>
+                        </div>
+                        <img src={walletQr} alt="USDT wallet QR code" className="size-16 bg-white p-1" />
+                      </div>
+                      <button type="button" onClick={copyWallet} className="mt-4 flex w-full items-center gap-2 border border-[#202522]/15 bg-[#fbfaf6] px-3 py-2 text-left text-xs font-mono hover:border-[#bd5b32]"><span className="min-w-0 flex-1 truncate">{walletAddress}</span>{copiedWallet ? <Check size={14} /> : <Copy size={14} />}</button>
+                    </div>
                     <Field label="Transaction hash" value={fields.transactionHash} onChange={(value) => updateField("transactionHash", value)} />
                     <Field label="Wallet address (optional)" value={fields.walletAddress} onChange={(value) => updateField("walletAddress", value)} />
                   </>}
