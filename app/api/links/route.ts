@@ -2,6 +2,28 @@ import { NextResponse } from "next/server"
 import { buildLinkCode, ensureLinksTable, normalizeTargetUrl, sql } from "@/lib/neon"
 import crypto from "crypto"
 
+export async function GET(request: Request) {
+  const url = new URL(request.url)
+  const page = Math.max(1, Number(url.searchParams.get("page") || "1"))
+  const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") || "12")))
+  const offset = (page - 1) * limit
+
+  await ensureLinksTable()
+  const rows = await sql`
+    SELECT code, target_url, visits, created_at
+    FROM links
+    ORDER BY created_at DESC
+    LIMIT ${limit + 1} OFFSET ${offset}
+  `
+
+  return NextResponse.json({
+    links: rows.slice(0, limit),
+    hasMore: rows.length > limit,
+    page,
+    limit,
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

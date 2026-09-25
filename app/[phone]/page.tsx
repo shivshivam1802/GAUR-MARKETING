@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { findOrCreateLink, incrementLinkVisits } from "@/lib/neon";
 
 export default async function Page({
   params,
@@ -17,5 +18,7 @@ export default async function Page({
     url += `?text=${encodeURIComponent(text)}`;
   }
 
+  const link = await findOrCreateLink(url);
+  await incrementLinkVisits(link.code);
   redirect(url);
 }

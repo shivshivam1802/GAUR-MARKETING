@@ -1,3 +1,3 @@
-import { LinkBuilder } from "@/components/link-builder"
+import { LinkWorkspace } from "@/components/link-workspace"
 
-export default LinkBuilder
+export default LinkWorkspace
